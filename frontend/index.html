@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Santa Cruz Segura Predictiva</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --cyan:#00d47a; --cyan-dim:rgba(0,212,122,.12);
+      --purple:#a78bfa; --purple-dim:rgba(167,139,250,.1);
+      --green:#34d399; --green-dim:rgba(52,211,153,.1);
+      --bg:#060e0a; --surface:rgba(255,255,255,.04);
+      --border:rgba(255,255,255,.07); --border-bright:rgba(0,212,122,.25);
+      --text:#f1f5f9; --muted:#64748b;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden;}
+
+    /* Grid bg pattern */
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;
+      background-image:
+        linear-gradient(rgba(0,212,122,.03) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,212,122,.03) 1px,transparent 1px);
+      background-size:50px 50px;
+      pointer-events:none;
+    }
+    /* Radial glow blobs */
+    body::after{
+      content:'';position:fixed;inset:0;z-index:0;
+      background:
+        radial-gradient(ellipse 700px 500px at 15% 50%, rgba(0,212,122,.10) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 400px at 85% 50%, rgba(167,139,250,.06) 0%, transparent 70%);
+      pointer-events:none;
+    }
+
+    /* ── Brand panel ── */
+    .brand-panel{
+      width:45%;position:relative;z-index:1;
+      display:flex;flex-direction:column;justify-content:center;
+      padding:3rem 3.5rem;
+      border-right:1px solid var(--border);
+    }
+    .brand-logo{
+      width:62px;height:62px;border-radius:16px;
+      border:1px solid var(--border-bright);
+      background:var(--cyan-dim);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.8rem;color:var(--cyan);margin-bottom:2rem;
+      box-shadow:0 0 30px rgba(0,212,122,.2), inset 0 0 20px rgba(0,212,122,.05);
+    }
+    .brand-tag{
+      display:inline-flex;align-items:center;gap:.4rem;
+      background:var(--cyan-dim);border:1px solid var(--border-bright);
+      color:var(--cyan);font-size:.7rem;font-weight:700;letter-spacing:.1em;
+      text-transform:uppercase;padding:.3rem .75rem;border-radius:20px;margin-bottom:1.25rem;
+    }
+    .brand-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 2s infinite;}
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .brand-title{font-size:2.4rem;font-weight:900;line-height:1.1;margin-bottom:.75rem;letter-spacing:-.02em;}
+    .brand-title .accent{
+      background:linear-gradient(90deg,var(--cyan),var(--purple));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .brand-sub{color:var(--muted);font-size:.88rem;line-height:1.65;margin-bottom:2.5rem;max-width:380px;}
+
+    .feature{display:flex;align-items:flex-start;gap:.9rem;margin-bottom:1rem;}
+    .feature-icon{
+      width:36px;height:36px;border-radius:9px;flex-shrink:0;margin-top:1px;
+      display:flex;align-items:center;justify-content:center;font-size:.95rem;
+    }
+    .fi-cyan{background:var(--cyan-dim);border:1px solid rgba(0,212,122,.15);color:var(--cyan);}
+    .fi-purple{background:var(--purple-dim);border:1px solid rgba(167,139,250,.15);color:var(--purple);}
+    .fi-green{background:var(--green-dim);border:1px solid rgba(52,211,153,.15);color:var(--green);}
+    .feature-text strong{color:var(--text);font-size:.85rem;display:block;}
+    .feature-text span{color:var(--muted);font-size:.78rem;}
+
+    .stats-row{
+      display:flex;gap:1.5rem;margin-top:2.5rem;
+      padding-top:2rem;border-top:1px solid var(--border);
+    }
+    .stat strong{display:block;font-size:1.5rem;font-weight:800;color:var(--cyan);}
+    .stat span{color:var(--muted);font-size:.72rem;}
+
+    /* ── Form panel ── */
+    .form-panel{
+      flex:1;position:relative;z-index:1;
+      display:flex;align-items:center;justify-content:center;padding:2rem;
+    }
+    .form-card{
+      width:100%;max-width:420px;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:20px;padding:2.5rem;
+      backdrop-filter:blur(20px);
+      box-shadow:0 0 60px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .form-card h2{font-size:1.35rem;font-weight:800;margin-bottom:.25rem;letter-spacing:-.01em;}
+    .form-card .sub{color:var(--muted);font-size:.83rem;margin-bottom:1.75rem;}
+
+    .tab-bar{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:1.75rem;gap:3px;}
+    .tab{flex:1;text-align:center;padding:.48rem;font-size:.82rem;font-weight:600;color:var(--muted);border-radius:8px;cursor:pointer;transition:all .2s;border:none;background:none;}
+    .tab.active{background:var(--cyan-dim);border:1px solid var(--border-bright);color:var(--cyan);}
+
+    .flabel{display:block;font-size:.79rem;font-weight:600;color:#94a3b8;margin-bottom:.32rem;letter-spacing:.02em;}
+    .iwrap{position:relative;}
+    .iwrap i{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.88rem;pointer-events:none;}
+    .finput{
+      width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;padding:.65rem .9rem;font-size:.87rem;color:var(--text);
+      transition:border-color .2s,box-shadow .2s;font-family:'Inter',sans-serif;
+    }
+    .iwrap .finput{padding-left:2.4rem;}
+    .finput::placeholder{color:rgba(255,255,255,.2);}
+    .finput:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,122,.1);}
+    .fselect{
+      width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;padding:.65rem .9rem;font-size:.87rem;color:var(--text);
+      transition:border-color .2s;font-family:'Inter',sans-serif;cursor:pointer;
+      -webkit-appearance:none;
+    }
+    .fselect:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,122,.1);}
+    .fselect option{background:#0f172a;color:var(--text);}
+    .mb3{margin-bottom:.85rem;}
+    .mb4{margin-bottom:1.2rem;}
+    .row2{display:flex;gap:.5rem;}
+    .row2>div{flex:1;}
+
+    .btn-main{
+      width:100%;padding:.72rem 1.5rem;border:none;border-radius:10px;cursor:pointer;
+      font-size:.88rem;font-weight:700;font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,rgba(0,212,122,.9),rgba(0,212,122,.7));
+      color:#060e0a;
+      box-shadow:0 0 24px rgba(0,212,122,.3);
+      transition:transform .15s,box-shadow .15s;
+      display:flex;align-items:center;justify-content:center;gap:.5rem;
+    }
+    .btn-main:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 0 36px rgba(0,212,122,.45);}
+    .btn-main:disabled{opacity:.6;}
+    .err-msg{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5;border-radius:9px;padding:.55rem .9rem;font-size:.81rem;margin-bottom:.9rem;}
+    .ok-msg{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:#6ee7b7;border-radius:9px;padding:.55rem .9rem;font-size:.81rem;margin-bottom:.9rem;}
+    .d-none{display:none!important;}
+
+    @media(max-width:767px){
+      body{flex-direction:column;overflow:auto;}
+      .brand-panel{width:100%;padding:1.5rem 1.25rem;border-right:none;border-bottom:1px solid var(--border);}
+      .feature,.stats-row{display:none;}
+      .brand-logo{width:44px;height:44px;font-size:1.2rem;margin-bottom:.9rem;}
+      .brand-title{font-size:1.5rem;}
+      .brand-sub{font-size:.82rem;margin-bottom:0;}
+      .brand-tag{margin-bottom:.75rem;}
+      .form-panel{padding:1.25rem 1rem;}
+      .form-card{padding:1.5rem 1.2rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-panel">
+    <div class="brand-logo"><i class="bi bi-shield-fill-check"></i></div>
+    <div class="brand-tag"><span class="dot"></span>Sistema activo · Santa Cruz, BO</div>
+    <h1 class="brand-title">Santa Cruz<br><span class="accent">Segura Predictiva</span></h1>
+    <p class="brand-sub">Plataforma con IA para anticipar y prevenir delitos en tu barrio. Datos en tiempo real, decisiones de hoy, barrios más seguros mañana.</p>
+
+    <div class="feature">
+      <div class="feature-icon fi-cyan"><i class="bi bi-cpu"></i></div>
+      <div class="feature-text"><strong>IA Predictiva</strong><span>RandomForest anticipa zonas de riesgo con datos históricos</span></div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon fi-purple"><i class="bi bi-broadcast"></i></div>
+      <div class="feature-text"><strong>Tiempo real</strong><span>Mapa de calor actualizado vía WebSocket</span></div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon fi-green"><i class="bi bi-people"></i></div>
+      <div class="feature-text"><strong>Colaborativo</strong><span>Vecinos, directivos y autoridades en una plataforma</span></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><strong>5</strong><span>Zonas activas</span></div>
+      <div class="stat"><strong>24/7</strong><span>Monitoreo</span></div>
+      <div class="stat"><strong>ML</strong><span>Predicción IA</span></div>
+    </div>
+  </div>
+
+  <div class="form-panel">
+    <div class="form-card">
+      <h2>Bienvenido</h2>
+      <p class="sub">Accede al sistema de seguridad predictiva</p>
+
+      <div class="tab-bar">
+        <button class="tab active" id="tab-btn-login" onclick="showTab('login')">Iniciar sesión</button>
+        <button class="tab" id="tab-btn-reg" onclick="showTab('register')">Registrarse</button>
+      </div>
+
+      <!-- Login -->
+      <div id="tab-login">
+        <div id="login-err" class="err-msg d-none"></div>
+        <div class="mb3">
+          <label class="flabel">Correo electrónico</label>
+          <div class="iwrap"><i class="bi bi-envelope"></i><input type="email" id="login-email" class="finput" placeholder="tucorreo@ejemplo.com"/></div>
+        </div>
+        <div class="mb4">
+          <label class="flabel">Contraseña</label>
+          <div class="iwrap"><i class="bi bi-lock"></i><input type="password" id="login-password" class="finput" placeholder="••••••••"/></div>
+        </div>
+        <button class="btn-main" id="btn-login" onclick="doLogin()">
+          <i class="bi bi-box-arrow-in-right"></i>Entrar al sistema
+        </button>
+      </div>
+
+      <!-- Register -->
+      <div id="tab-register" class="d-none">
+        <div id="reg-err" class="err-msg d-none"></div>
+        <div id="reg-ok" class="ok-msg d-none"></div>
+        <div class="row2 mb3">
+          <div><label class="flabel">Nombre</label><input type="text" id="reg-nombre" class="finput" placeholder="Juan"/></div>
+          <div><label class="flabel">Apellido</label><input type="text" id="reg-apellido" class="finput" placeholder="Pérez"/></div>
+        </div>
+        <div class="mb3">
+          <label class="flabel">Correo electrónico</label>
+          <div class="iwrap"><i class="bi bi-envelope"></i><input type="email" id="reg-email" class="finput" placeholder="tucorreo@ejemplo.com"/></div>
+        </div>
+        <div class="mb3">
+          <label class="flabel">Contraseña</label>
+          <div class="iwrap"><i class="bi bi-lock"></i><input type="password" id="reg-password" class="finput" placeholder="Mínimo 6 caracteres"/></div>
+        </div>
+        <div class="mb4">
+          <label class="flabel">Junta vecinal</label>
+          <select id="reg-junta" class="fselect"><option value="">Selecciona tu junta…</option></select>
+        </div>
+        <button class="btn-main" id="btn-register" onclick="doRegister()">
+          <i class="bi bi-person-plus"></i>Crear cuenta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (getToken()) window.location.href = 'dashboard.html';
+
+    function showTab(t) {
+      document.getElementById('tab-btn-login').classList.toggle('active', t==='login');
+      document.getElementById('tab-btn-reg').classList.toggle('active', t==='register');
+      document.getElementById('tab-login').classList.toggle('d-none', t!=='login');
+      document.getElementById('tab-register').classList.toggle('d-none', t!=='register');
+    }
+
+    async function doLogin() {
+      const errEl = document.getElementById('login-err');
+      const btn = document.getElementById('btn-login');
+      errEl.classList.add('d-none');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:.9rem;height:.9rem;border-width:2px"></span>Ingresando…';
+      try {
+        const data = await fetch('http://localhost:8000/auth/login', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ email:document.getElementById('login-email').value, password:document.getElementById('login-password').value }),
+        }).then(r => { if(!r.ok) throw new Error('Email o contraseña incorrectos'); return r.json(); });
+        saveToken(data.access_token);
+        const me = await fetch('http://localhost:8000/usuarios/me', { headers:{'Authorization':'Bearer '+data.access_token} }).then(r=>r.json());
+        localStorage.setItem('scs_user', JSON.stringify(me));
+        window.location.href = 'dashboard.html';
+      } catch(e) {
+        errEl.textContent = e.message; errEl.classList.remove('d-none');
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i>Entrar al sistema';
+      }
+    }
+
+    async function doRegister() {
+      const errEl = document.getElementById('reg-err');
+      const okEl  = document.getElementById('reg-ok');
+      const btn   = document.getElementById('btn-register');
+      errEl.classList.add('d-none'); okEl.classList.add('d-none');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:.9rem;height:.9rem;border-width:2px"></span>Creando…';
+      try {
+        await fetch('http://localhost:8000/auth/register', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            nombre:document.getElementById('reg-nombre').value,
+            apellido:document.getElementById('reg-apellido').value,
+            email:document.getElementById('reg-email').value,
+            password:document.getElementById('reg-password').value,
+            id_junta:parseInt(document.getElementById('reg-junta').value),
+          }),
+        }).then(r => { if(!r.ok) return r.json().then(d=>{throw new Error(d.detail||'Error al registrar');}); return r.json(); });
+        okEl.textContent = '¡Cuenta creada! Ya puedes iniciar sesión.'; okEl.classList.remove('d-none');
+        setTimeout(()=>showTab('login'), 2000);
+      } catch(e) {
+        errEl.textContent = e.message; errEl.classList.remove('d-none');
+      } finally {
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-person-plus"></i>Crear cuenta';
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      document.getElementById('tab-login').classList.contains('d-none') ? doRegister() : doLogin();
+    });
+
+    fetch('http://localhost:8000/auth/juntas').then(r=>r.json()).then(juntas => {
+      const sel = document.getElementById('reg-junta');
+      juntas.forEach(j => { const o=document.createElement('option'); o.value=j.id_junta; o.textContent=j.nombre; sel.appendChild(o); });
+    }).catch(()=>{});
+  </script>
+</body>
+</html>

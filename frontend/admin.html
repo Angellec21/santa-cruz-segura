@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración — Santa Cruz Segura</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;}
+    :root{--cyan:#00d47a;--cyan-dim:rgba(0,212,122,.1);--border:rgba(255,255,255,.07);--border-acc:rgba(0,212,122,.2);--bg:#060e0a;--surface:rgba(255,255,255,.04);--text:#f1f5f9;--muted:#64748b;--sidebar-w:252px;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;}
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,212,122,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,122,.025) 1px,transparent 1px);background-size:60px 60px;}
+
+    .sidebar{width:var(--sidebar-w);height:100vh;background:rgba(2,14,7,.97);border-right:1px solid var(--border);position:fixed;top:0;left:0;z-index:1045;display:flex;flex-direction:column;backdrop-filter:blur(20px);}
+    .sidebar-brand{padding:1.2rem 1.1rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:.65rem;}
+    .sidebar-logo{width:34px;height:34px;border-radius:8px;background:var(--cyan-dim);border:1px solid var(--border-acc);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--cyan);flex-shrink:0;box-shadow:0 0 10px rgba(0,212,122,.15);}
+    .sb-name{color:var(--text);font-weight:700;font-size:.86rem;line-height:1.2;}
+    .sb-sub{color:var(--muted);font-size:.65rem;letter-spacing:.04em;}
+    .sidebar-nav{flex:1;overflow-y:auto;padding:.5rem 0;}
+    .nav-link{color:rgba(255,255,255,.5);padding:.55rem .9rem;border-radius:9px;margin:.05rem .4rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:500;text-decoration:none;transition:all .18s;position:relative;}
+    .nav-link i{font-size:.88rem;width:16px;text-align:center;}
+    .nav-link:hover{color:var(--text);background:var(--surface);}
+    .nav-link.active{color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(0,212,122,.12);}
+    .nav-link.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:2px;background:var(--cyan);border-radius:0 2px 2px 0;box-shadow:0 0 8px var(--cyan);}
+    .sidebar-footer{padding:.85rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;}
+    .btn-logout{background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:.3rem .7rem;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;width:100%;}
+    .btn-logout:hover{border-color:#f87171;color:#f87171;}
+
+    .mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:rgba(2,14,7,.97);border-bottom:1px solid var(--border);z-index:1050;align-items:center;justify-content:space-between;padding:0 1rem;backdrop-filter:blur(20px);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1044;}
+    .sidebar-overlay.open{display:block;}
+
+    .main-content{margin-left:var(--sidebar-w);padding:1.5rem;position:relative;z-index:1;}
+
+    .table-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .table-card-header{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:.88rem;}
+    .table{--bs-table-bg:transparent;--bs-table-hover-bg:rgba(255,255,255,.03);margin-bottom:0;}
+    .table thead th{background:rgba(255,255,255,.04);border-bottom:1px solid var(--border);color:var(--muted);font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:.65rem 1rem;white-space:nowrap;}
+    .table tbody td{border-bottom:1px solid rgba(255,255,255,.04);padding:.7rem 1rem;vertical-align:middle;color:var(--text);font-size:.83rem;}
+    .table tbody tr:last-child td{border-bottom:none;}
+    .table tbody tr:hover td{background:rgba(255,255,255,.03);}
+
+    .rol-badge{font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;display:inline-block;white-space:nowrap;}
+    .rol-vecino{background:rgba(0,212,122,.1);color:#00d47a;border:1px solid rgba(0,212,122,.2);}
+    .rol-directivo{background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.2);}
+    .rol-autoridad{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
+    .rol-admin{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2);}
+    .estado-activo{background:rgba(52,211,153,.1);color:#34d399;border:1px solid rgba(52,211,153,.2);font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;display:inline-block;}
+    .estado-suspendido{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2);font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;display:inline-block;}
+
+    .btn-activar{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:#34d399;border-radius:7px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;}
+    .btn-activar:hover{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.4);}
+    .btn-suspender{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171;border-radius:7px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;}
+    .btn-suspender:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
+
+    .modal-content{background:#081510;border:1px solid var(--border);}
+    .modal-header-scs{background:rgba(0,212,122,.08);border-bottom:1px solid var(--border-acc);color:var(--cyan);}
+    .modal-header-scs .btn-close{filter:invert(1);}
+    .modal-body,.modal-footer{background:#081510;}
+    .btn-scs{background:linear-gradient(135deg,rgba(0,212,122,.9),rgba(0,212,122,.7));border:none;color:#060e0a;font-weight:700;box-shadow:0 0 16px rgba(0,212,122,.2);}
+    .btn-scs:hover{box-shadow:0 0 28px rgba(0,212,122,.4);color:#060e0a;}
+
+    @media(max-width:991.98px){
+      .sidebar{transform:translateX(-100%);transition:transform .28s ease;width:270px;}
+      .sidebar.open{transform:translateX(0);box-shadow:0 0 60px rgba(0,0,0,.6);}
+      .mobile-topbar{display:flex;}
+      .main-content{margin-left:0;padding:1rem;padding-top:calc(52px + 1rem);}
+    }
+    @media(max-width:575.98px){
+      .main-content{padding:.75rem;padding-top:calc(52px + .75rem);}
+      .col-email,.col-junta{display:none;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar">
+    <button class="btn text-white p-1 lh-1 border-0 bg-transparent" onclick="openSidebar()">
+      <i class="bi bi-list fs-3"></i>
+    </button>
+    <span class="fw-bold text-white" style="font-size:.88rem">Administración</span>
+    <span style="width:32px"></span>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-brand d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="sidebar-logo"><i class="bi bi-shield-fill-check"></i></div>
+        <div><div class="sb-name">Santa Cruz</div><div class="sb-sub">SEGURA PREDICTIVA</div></div>
+      </div>
+      <button class="btn text-white p-0 d-lg-none lh-1 border-0 bg-transparent" onclick="closeSidebar()">
+        <i class="bi bi-x-lg" style="font-size:.9rem"></i>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="reportar.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-exclamation-triangle"></i> Reportar</a>
+      <a href="mis-reportes.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-list-check"></i> Mis reportes</a>
+      <a href="alertas.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-bell"></i> Alertas</a>
+      <a href="admin.html" class="nav-link active" onclick="closeSidebar()"><i class="bi bi-people"></i> Usuarios</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="btn-logout" class="btn-logout">
+        <i class="bi bi-box-arrow-left me-1"></i>Cerrar sesión
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="mb-4">
+      <h5 class="fw-bold mb-0">Administración de usuarios</h5>
+      <small style="color:var(--muted)"><i class="bi bi-people me-1"></i>Gestión de vecinos y permisos del sistema</small>
+    </div>
+
+    <div class="table-card">
+      <div class="table-card-header">
+        <i class="bi bi-people" style="color:var(--cyan)"></i>
+        Usuarios registrados
+        <span id="user-count" style="color:var(--muted);font-weight:400;font-size:.79rem;margin-left:.25rem"></span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover" id="tabla-usuarios">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th class="col-email">Email</th>
+              <th class="col-junta">Junta</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" class="text-center py-4" style="color:var(--muted)">
+              <div class="spinner-border spinner-border-sm me-2" style="color:var(--cyan)"></div>Cargando usuarios…
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmar estado -->
+  <div class="modal fade" id="modalEstado" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content shadow">
+        <div class="modal-header modal-header-scs">
+          <h6 class="modal-title mb-0 fs-6"><i class="bi bi-person-gear me-2"></i>Cambiar estado</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center py-4">
+          <div id="modal-estado-icon" class="fs-1 mb-2"></div>
+          <p id="modal-estado-msg" class="mb-0" style="font-size:.88rem"></p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-scs btn-sm fw-semibold" id="btn-confirmar-estado">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    requireAuth(['admin']);
+
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebar-overlay').classList.add('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+
+    const ROL_NOMBRES = { 1: 'Vecino', 2: 'Directivo', 3: 'Autoridad', 4: 'Admin' };
+    const ROL_CLS     = { 1: 'rol-vecino', 2: 'rol-directivo', 3: 'rol-autoridad', 4: 'rol-admin' };
+    let pendingToggle = null;
+
+    async function cargarUsuarios() {
+      const tbody = document.querySelector('#tabla-usuarios tbody');
+      try {
+        const usuarios = await api('/usuarios');
+        const countEl = document.getElementById('user-count');
+        if (countEl) countEl.textContent = `(${usuarios.length})`;
+        if (!usuarios.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4" style="color:var(--muted)">Sin usuarios registrados.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = usuarios.map(u => `
+          <tr>
+            <td style="color:var(--muted);font-size:.78rem">${u.id_usuario}</td>
+            <td>
+              <div class="fw-semibold" style="font-size:.85rem">${u.nombre} ${u.apellido}</div>
+              <div class="d-sm-none" style="font-size:.74rem;color:var(--muted)">${u.email}</div>
+            </td>
+            <td class="col-email" style="color:var(--muted);font-size:.8rem">${u.email}</td>
+            <td class="col-junta" style="color:var(--muted);font-size:.8rem">${u.id_junta || '—'}</td>
+            <td><span class="rol-badge ${ROL_CLS[u.id_rol] || 'rol-vecino'}">${ROL_NOMBRES[u.id_rol] || u.id_rol}</span></td>
+            <td><span class="${u.activo ? 'estado-activo' : 'estado-suspendido'}">${u.activo ? 'Activo' : 'Suspendido'}</span></td>
+            <td>
+              <button onclick="confirmarEstado(${u.id_usuario}, ${u.activo}, '${u.nombre}')"
+                class="${u.activo ? 'btn-suspender' : 'btn-activar'}">
+                <i class="bi bi-${u.activo ? 'person-slash' : 'person-check'} me-1"></i>
+                <span class="d-none d-md-inline">${u.activo ? 'Suspender' : 'Activar'}</span>
+              </button>
+            </td>
+          </tr>`).join('');
+      } catch {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4" style="color:#f87171">Error al cargar usuarios.</td></tr>';
+      }
+    }
+
+    function confirmarEstado(id, activo, nombre) {
+      pendingToggle = { id, activo };
+      document.getElementById('modal-estado-icon').innerHTML = activo
+        ? '<i class="bi bi-person-slash" style="color:#f87171"></i>'
+        : '<i class="bi bi-person-check" style="color:#34d399"></i>';
+      document.getElementById('modal-estado-msg').innerHTML = activo
+        ? `¿Suspender el acceso de <strong>${nombre}</strong>?`
+        : `¿Activar la cuenta de <strong>${nombre}</strong>?`;
+      new bootstrap.Modal(document.getElementById('modalEstado')).show();
+    }
+
+    document.getElementById('btn-confirmar-estado').addEventListener('click', async () => {
+      if (!pendingToggle) return;
+      await api(`/usuarios/${pendingToggle.id}/estado`, { method: 'PUT', body: JSON.stringify({ activo: !pendingToggle.activo }) });
+      bootstrap.Modal.getInstance(document.getElementById('modalEstado')).hide();
+      cargarUsuarios();
+    });
+
+    cargarUsuarios();
+  </script>
+</body>
+</html>

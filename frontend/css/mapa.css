@@ -1,0 +1,15 @@
+.map-section { position: relative; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+
+#mapa { height: 480px; width: 100%; }
+
+.mapa-mini { height: 300px; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--color-border); }
+
+.ws-badge { position: absolute; top: 12px; right: 12px; z-index: 1000; padding: .3rem .8rem; border-radius: 99px; font-size: .78rem; font-weight: 600; }
+.ws-connected    { background: #e8f5e9; color: #2e7d32; }
+.ws-disconnected { background: #ffebee; color: #c62828; }
+
+.reportar-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
+
+@media (max-width: 700px) {
+  .reportar-layout { grid-template-columns: 1fr; }
+}

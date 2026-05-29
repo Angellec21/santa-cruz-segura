@@ -1,0 +1,47 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --color-primary: #1565c0;
+  --color-primary-dark: #0d47a1;
+  --color-danger: #c62828;
+  --color-success: #2e7d32;
+  --color-warning: #f57f17;
+  --color-info: #01579b;
+  --color-bg: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-border: #dde1e7;
+  --color-text: #1a1a2e;
+  --color-muted: #6b7280;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,.10);
+}
+
+html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: var(--color-text); background: var(--color-bg); }
+
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1 { font-size: 1.6rem; } h2 { font-size: 1.3rem; } h3 { font-size: 1.1rem; }
+
+.hidden { display: none !important; }
+.text-muted { color: var(--color-muted); font-size: .85rem; }
+.loading { color: var(--color-muted); }
+
+/* Auth page */
+.auth-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.auth-card { background: var(--color-surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; width: 100%; max-width: 420px; }
+.auth-header { text-align: center; margin-bottom: 1.5rem; }
+.auth-header p { color: var(--color-muted); margin-top: .25rem; }
+.auth-logo { width: 56px; margin-bottom: .5rem; }
+.auth-footer { text-align: center; margin-top: 1rem; font-size: .85rem; }
+
+/* Navbar */
+.navbar { background: var(--color-primary); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.5rem; position: sticky; top: 0; z-index: 1000; }
+.navbar-brand { font-weight: 700; font-size: 1rem; color: #fff; }
+.navbar-links { display: flex; align-items: center; gap: 1rem; }
+.navbar-links a { color: rgba(255,255,255,.8); font-size: .9rem; }
+.navbar-links a.active, .navbar-links a:hover { color: #fff; }
+
+/* Page layout */
+.page-content { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Santa Cruz Segura</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --cyan:#00d47a;--cyan-dim:rgba(0,212,122,.1);--cyan-glow:rgba(0,212,122,.2);
+      --purple:#a78bfa;--purple-dim:rgba(167,139,250,.08);
+      --green:#34d399;--green-dim:rgba(52,211,153,.08);
+      --red:#f87171;--yellow:#fbbf24;
+      --bg:#060e0a;--surface:rgba(255,255,255,.04);--surface2:rgba(255,255,255,.03);
+      --border:rgba(255,255,255,.07);--border-accent:rgba(0,212,122,.2);
+      --text:#f1f5f9;--muted:#64748b;--muted2:#475569;
+      --sidebar-w:252px;--radius:14px;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;}
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(0,212,122,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,122,.025) 1px,transparent 1px);
+      background-size:60px 60px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar{
+      width:var(--sidebar-w);height:100vh;
+      background:rgba(2,14,7,.97);
+      border-right:1px solid var(--border);
+      position:fixed;top:0;left:0;z-index:1045;
+      display:flex;flex-direction:column;
+      backdrop-filter:blur(20px);
+    }
+    .sidebar-brand{padding:1.3rem 1.2rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .sidebar-logo{
+      width:36px;height:36px;border-radius:9px;
+      background:var(--cyan-dim);border:1px solid var(--border-accent);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1rem;color:var(--cyan);flex-shrink:0;
+      box-shadow:0 0 12px var(--cyan-glow);
+    }
+    .sidebar-brand-name{color:var(--text);font-weight:700;font-size:.88rem;line-height:1.2;}
+    .sidebar-brand-sub{color:var(--muted);font-size:.67rem;letter-spacing:.04em;}
+
+    .sidebar-nav{flex:1;overflow-y:auto;padding:.5rem 0;}
+    .nav-group{color:var(--muted);font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.6rem 1.1rem .2rem;}
+    .nav-link{
+      color:var(--muted2);padding:.55rem .9rem;border-radius:9px;
+      margin:.06rem .4rem;display:flex;align-items:center;gap:.6rem;
+      font-size:.83rem;font-weight:500;text-decoration:none;transition:all .18s;position:relative;
+    }
+    .nav-link i{font-size:.9rem;width:17px;text-align:center;}
+    .nav-link:hover{color:var(--text);background:var(--surface);}
+    .nav-link.active{color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(0,212,122,.12);}
+    .nav-link.active::before{
+      content:'';position:absolute;left:0;top:20%;bottom:20%;width:2px;
+      background:var(--cyan);border-radius:0 2px 2px 0;
+      box-shadow:0 0 8px var(--cyan);
+    }
+
+    .sidebar-user{padding:.85rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;}
+    .user-avatar{
+      width:30px;height:30px;border-radius:50%;
+      background:var(--cyan-dim);border:1px solid var(--border-accent);
+      display:flex;align-items:center;justify-content:center;
+      font-size:.75rem;color:var(--cyan);font-weight:700;flex-shrink:0;
+    }
+    .user-name{color:var(--text);font-size:.79rem;font-weight:600;line-height:1.2;}
+    .user-role-label{color:var(--muted);font-size:.67rem;}
+    .btn-logout{
+      background:none;border:1px solid var(--border);color:var(--muted);
+      border-radius:7px;padding:.28rem .55rem;font-size:.73rem;cursor:pointer;
+      transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;
+    }
+    .btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+    /* Mobile */
+    .mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:rgba(2,14,7,.97);border-bottom:1px solid var(--border);z-index:1050;align-items:center;justify-content:space-between;padding:0 1rem;backdrop-filter:blur(20px);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1044;}
+    .sidebar-overlay.open{display:block;}
+
+    /* ── Main ── */
+    .main{margin-left:var(--sidebar-w);padding:1.5rem;min-height:100vh;position:relative;z-index:1;}
+
+    /* ── Page header ── */
+    .page-hdr{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:1.2rem 1.5rem;margin-bottom:1.4rem;
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+      position:relative;overflow:hidden;
+    }
+    .page-hdr::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    }
+    .page-hdr-title{font-size:1.05rem;font-weight:800;letter-spacing:-.01em;margin-bottom:.15rem;}
+    .page-hdr-sub{color:var(--muted);font-size:.78rem;}
+
+    .ws-pill{font-size:.68rem;font-weight:700;padding:.25rem .6rem;border-radius:20px;display:inline-flex;align-items:center;gap:.3rem;letter-spacing:.02em;}
+    .ws-pill.on{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--green);}
+    .ws-pill.off{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.15);color:var(--red);}
+    .ws-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+    .ws-pill.on .ws-dot{animation:blink 1.5s infinite;}
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+    /* ── Metric cards ── */
+    .metric-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:1.15rem 1.25rem;
+      transition:transform .2s,box-shadow .2s,border-color .2s;position:relative;overflow:hidden;
+    }
+    .metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;}
+    .mc-blue::after{background:linear-gradient(90deg,transparent,#3b82f6,transparent);}
+    .mc-red::after{background:linear-gradient(90deg,transparent,var(--red),transparent);}
+    .mc-green::after{background:linear-gradient(90deg,transparent,var(--green),transparent);}
+    .mc-yellow::after{background:linear-gradient(90deg,transparent,var(--yellow),transparent);}
+    .metric-card:hover{transform:translateY(-2px);}
+    .mc-blue:hover{border-color:rgba(59,130,246,.25);box-shadow:0 0 20px rgba(59,130,246,.08);}
+    .mc-red:hover{border-color:rgba(248,113,113,.25);box-shadow:0 0 20px rgba(248,113,113,.08);}
+    .mc-green:hover{border-color:rgba(52,211,153,.25);box-shadow:0 0 20px rgba(52,211,153,.08);}
+    .mc-yellow:hover{border-color:rgba(251,191,36,.25);box-shadow:0 0 20px rgba(251,191,36,.08);}
+
+    .metric-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .mi-blue{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.15);color:#60a5fa;}
+    .mi-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.15);color:var(--red);}
+    .mi-green{background:var(--green-dim);border:1px solid rgba(52,211,153,.15);color:var(--green);}
+    .mi-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);color:var(--yellow);}
+    .metric-label{color:var(--muted);font-size:.76rem;font-weight:500;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.04em;}
+    .metric-value{font-size:1.9rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
+
+    /* ── Cards ── */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+    .card-hdr{
+      padding:.9rem 1.2rem .7rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;
+    }
+    .card-hdr-title{font-size:.88rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:.5rem;}
+    .card-hdr-title i{color:var(--cyan);}
+    .card-body{padding:1rem 1.2rem 1.2rem;}
+
+    /* Map */
+    .map-card{display:flex;flex-direction:column;}
+    .map-card #mapa{flex:1;min-height:420px;z-index:1;}
+    .leaflet-container{background:#060e0a!important;}
+    .leaflet-popup-content-wrapper{background:#081510;border:1px solid rgba(0,212,122,.2);color:#f1f5f9;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+    .leaflet-popup-tip{background:#081510;}
+    .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:.82rem;margin:.55rem .75rem;}
+    .leaflet-popup-content b{color:#00d47a;}
+    .leaflet-control-zoom a{background:rgba(13,22,37,.9)!important;border-color:rgba(255,255,255,.1)!important;color:#94a3b8!important;}
+    .leaflet-control-zoom a:hover{background:rgba(0,212,122,.1)!important;color:#00d47a!important;}
+
+    /* AI Panel */
+    .zona-row{
+      padding:.75rem 1.1rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:.7rem;transition:background .15s;
+    }
+    .zona-row:last-child{border-bottom:none;}
+    .zona-row:hover{background:rgba(255,255,255,.02);}
+    .nivel-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+    .zona-name{font-size:.81rem;font-weight:600;color:var(--text);}
+    .zona-actual{font-size:.7rem;color:var(--muted);}
+    .pred-badge{font-size:.67rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;display:inline-block;text-transform:uppercase;letter-spacing:.04em;}
+    .pb-bajo{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--green);}
+    .pb-medio{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow);}
+    .pb-alto{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red);}
+    .pb-critico{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--purple);}
+    .pred-prob{font-size:.69rem;color:var(--muted);margin-top:.1rem;}
+    .btn-pred{
+      background:none;border:1px solid var(--border);color:var(--muted);
+      border-radius:7px;font-size:.69rem;padding:.15rem .5rem;cursor:pointer;
+      transition:all .15s;white-space:nowrap;font-family:'Inter',sans-serif;
+    }
+    .btn-pred:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);}
+
+    /* Table */
+    .table{width:100%;border-collapse:collapse;font-size:.82rem;}
+    .table th{color:var(--muted);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:.65rem 1rem;border-bottom:1px solid var(--border);text-align:left;}
+    .table td{padding:.65rem 1rem;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;}
+    .table tbody tr:hover{background:rgba(255,255,255,.02);}
+    .table tbody tr:last-child td{border-bottom:none;}
+
+    /* Riesgo badges */
+    .rb{font-size:.67rem;font-weight:700;padding:.16rem .5rem;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;}
+    .rb-bajo{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--green);}
+    .rb-medio{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow);}
+    .rb-alto{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red);}
+    .rb-critico{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--purple);}
+
+    /* Alert banner */
+    .alert-banner{border-radius:var(--radius);padding:.9rem 1.2rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;border:1px solid;}
+
+    /* Grid helpers */
+    .grid{display:grid;gap:1rem;}
+    .g2{grid-template-columns:1fr 1fr;}
+    .g3{grid-template-columns:1fr 1fr 1fr;}
+    .g4{grid-template-columns:repeat(4,1fr);}
+    .g8-4{grid-template-columns:2fr 1fr;}
+    .g7-5{grid-template-columns:7fr 5fr;}
+
+    @media(max-width:1200px){.g8-4{grid-template-columns:1fr;}.g7-5{grid-template-columns:1fr;}}
+    @media(max-width:991.98px){
+      .sidebar{transform:translateX(-100%);transition:transform .28s ease;width:272px;}
+      .sidebar.open{transform:translateX(0);box-shadow:0 0 60px rgba(0,0,0,.6);}
+      .mobile-topbar{display:flex;}
+      .main{margin-left:0;padding:.9rem;padding-top:calc(52px + .9rem);}
+      #mapa{height:250px;}
+      .metric-value{font-size:1.5rem;}
+      .g4{grid-template-columns:1fr 1fr;}
+    }
+    @media(max-width:575px){
+      .main{padding:.65rem;padding-top:calc(52px + .65rem);}
+      .g4{grid-template-columns:1fr 1fr;}
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Mobile topbar -->
+<div class="mobile-topbar">
+  <button onclick="openSidebar()" style="background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:.2rem"><i class="bi bi-list"></i></button>
+  <span style="font-weight:700;font-size:.88rem">Santa Cruz Segura</span>
+  <span id="ws-mob" class="ws-pill off"><span class="ws-dot"></span>WS</span>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand" style="display:flex;align-items:center;gap:.7rem">
+    <div class="sidebar-logo"><i class="bi bi-shield-fill-check"></i></div>
+    <div>
+      <div class="sidebar-brand-name">Santa Cruz</div>
+      <div class="sidebar-brand-sub">SEGURA PREDICTIVA</div>
+    </div>
+    <button onclick="closeSidebar()" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-left:auto;display:none;font-size:1.1rem" class="d-lg-none" id="btn-close-sidebar"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">Principal</div>
+    <a href="dashboard.html" class="nav-link active" onclick="closeSidebar()"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="reportar.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-exclamation-triangle"></i>Reportar incidente</a>
+    <a href="mis-reportes.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-list-check"></i>Mis reportes</a>
+    <a href="alertas.html" class="nav-link" onclick="closeSidebar()"><i class="bi bi-bell"></i>Alertas</a>
+    <div class="nav-group" style="margin-top:.5rem">Sistema</div>
+    <a href="admin.html" class="nav-link d-none" id="link-admin" onclick="closeSidebar()"><i class="bi bi-people"></i>Usuarios</a>
+  </nav>
+  <div class="sidebar-user" style="display:flex;align-items:center;gap:.6rem">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div style="flex:1;min-width:0">
+      <div class="user-name" id="user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+      <div class="user-role-label" id="user-role"></div>
+    </div>
+    <button class="btn-logout" id="btn-logout"><i class="bi bi-box-arrow-left"></i></button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div>
+      <div class="page-hdr-title"><i class="bi bi-shield-fill-check" style="color:var(--cyan);font-size:.9rem"></i> Dashboard de seguridad</div>
+      <div class="page-hdr-sub">Monitoreo predictivo en tiempo real · Santa Cruz, Bolivia</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <span id="ws-badge" class="ws-pill off d-none-sm"><span class="ws-dot"></span>Sin conexión</span>
+      <a href="reportar.html" style="background:var(--cyan-dim);border:1px solid var(--border-accent);color:var(--cyan);border-radius:9px;padding:.35rem .85rem;font-size:.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:.4rem">
+        <i class="bi bi-plus-circle"></i>Reportar
+      </a>
+    </div>
+  </div>
+
+  <!-- Alert banner -->
+  <div id="alert-banner"></div>
+
+  <!-- Metrics -->
+  <div class="grid g4" style="margin-bottom:1rem">
+    <div class="metric-card mc-blue">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div class="metric-icon mi-blue"><i class="bi bi-flag-fill"></i></div>
+      </div>
+      <div class="metric-label">Reportes · 30 días</div>
+      <div class="metric-value" style="color:#60a5fa" id="val-reportes">—</div>
+    </div>
+    <div class="metric-card mc-red">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div class="metric-icon mi-red"><i class="bi bi-bell-fill"></i></div>
+      </div>
+      <div class="metric-label">Alertas activas</div>
+      <div class="metric-value" style="color:var(--red)" id="val-alertas">—</div>
+    </div>
+    <div class="metric-card mc-green">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div class="metric-icon mi-green"><i class="bi bi-geo-alt-fill"></i></div>
+      </div>
+      <div class="metric-label">Zonas monitoreadas</div>
+      <div class="metric-value" style="color:var(--green)" id="val-zonas">—</div>
+    </div>
+    <div class="metric-card mc-yellow">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div class="metric-icon mi-yellow"><i class="bi bi-shield-exclamation"></i></div>
+      </div>
+      <div class="metric-label">Riesgo máximo</div>
+      <div class="metric-value" id="val-riesgo" style="font-size:1.3rem;text-transform:capitalize">—</div>
+    </div>
+  </div>
+
+  <!-- Map + AI -->
+  <div class="grid g8-4" style="margin-bottom:1rem;align-items:stretch">
+    <div class="card map-card">
+      <div class="card-hdr">
+        <div class="card-hdr-title"><i class="bi bi-map"></i>Mapa predictivo de riesgo</div>
+        <span id="ws-badge-map" class="ws-pill off"><span class="ws-dot"></span>Sin conexión</span>
+      </div>
+      <div id="mapa"></div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-hdr">
+        <div class="card-hdr-title"><i class="bi bi-cpu"></i>Predicción IA · 7 días</div>
+        <span style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);color:var(--purple);font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;letter-spacing:.04em">ML ACTIVO</span>
+      </div>
+      <div id="ai-zonas-list" style="flex:1;overflow-y:auto;min-height:200px">
+        <div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.82rem">
+          <i class="bi bi-cpu" style="font-size:1.5rem;display:block;margin-bottom:.5rem;color:var(--purple)"></i>Cargando predicciones…
+        </div>
+      </div>
+      <div style="padding:.6rem 1rem;border-top:1px solid var(--border);background:rgba(255,255,255,.01)">
+        <small style="color:var(--muted);font-size:.68rem"><i class="bi bi-info-circle me-1"></i>RandomForest sobre reportes históricos</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid g7-5" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-hdr-title"><i class="bi bi-graph-up"></i>Tendencia de incidentes</div>
+        <small style="color:var(--muted);font-size:.72rem">Últimos 30 días</small>
+      </div>
+      <div class="card-body"><canvas id="chart-tendencia" height="130"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-hdr-title"><i class="bi bi-pie-chart"></i>Tipos de incidentes</div>
+        <small style="color:var(--muted);font-size:.72rem">30 días</small>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:center;min-height:200px">
+        <canvas id="chart-tipos" style="max-height:210px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-hdr-title"><i class="bi bi-table"></i>Resumen por barrio</div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="table" id="tabla-barrios">
+        <thead>
+          <tr>
+            <th>Junta vecinal</th>
+            <th class="d-none-sm">Distrito</th>
+            <th>Reportes 30d</th>
+            <th class="d-none-md">Alertas</th>
+            <th>Nivel riesgo</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">
+          <i class="bi bi-arrow-repeat" style="animation:spin .8s linear infinite;display:inline-block;margin-right:.4rem"></i>Cargando…
+        </td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .d-none{display:none!important;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:767px){.d-none-sm{display:none}.d-none-md{display:none}}
+  @media(max-width:991px){.d-none-md{display:none}.d-lg-none{display:block!important}}
+</style>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/dashboard.js"></script>
+<script>
+  function openSidebar(){
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+    document.getElementById('btn-close-sidebar').style.display='block';
+  }
+  function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+  // Sync WS badges
+  const _obs=new MutationObserver(()=>{
+    const src=document.getElementById('ws-badge-map'); if(!src) return;
+    const on=src.classList.contains('on');
+    ['ws-badge','ws-mob'].forEach(id=>{
+      const el=document.getElementById(id); if(!el) return;
+      el.className='ws-pill '+(on?'on':'off');
+      el.innerHTML=src.innerHTML;
+    });
+  });
+  window.addEventListener('DOMContentLoaded',()=>{
+    const b=document.getElementById('ws-badge-map');
+    if(b) _obs.observe(b,{childList:true,characterData:true,subtree:true,attributes:true});
+  });
+</script>
+</body>
+</html>

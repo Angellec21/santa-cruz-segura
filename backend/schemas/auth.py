@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
@@ -16,6 +17,6 @@ class RegisterRequest(BaseModel):
     nombre: str
     apellido: str
     email: EmailStr
-    telefono: str | None = None
+    telefono: Optional[str] = None
     password: str
     id_junta: int

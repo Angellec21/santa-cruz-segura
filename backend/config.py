@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DB_NAME: str = "santa_cruz_segura"
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
+    DATABASE_URL: str | None = None  # override completo (Aiven lo provee)
 
     SECRET_KEY: str = "cambia_esto"
     ALGORITHM: str = "HS256"
@@ -21,6 +22,8 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         return (
             f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

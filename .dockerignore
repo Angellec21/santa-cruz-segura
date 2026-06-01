@@ -1,0 +1,12 @@
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+uploads/
+backend/ml/model.pkl
+*.log
+.git/
+.idea/
+.vscode/

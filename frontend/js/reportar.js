@@ -101,7 +101,7 @@ mapa.on('click', e => {
 async function cargarSelects() {
   try {
     const [tipos, zonas] = await Promise.all([
-      fetch('http://localhost:8000/auth/tipos').then(r => r.json()),
+      fetch('/auth/tipos').then(r => r.json()),
       api('/zonas'),
     ]);
 

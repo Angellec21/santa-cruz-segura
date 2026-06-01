@@ -76,7 +76,7 @@ function initMapa(elementId = 'mapa') {
 async function cargarMapa() {
   try {
     // 1. Tipos de incidente (para etiquetas en popups)
-    const tipos = await fetch('http://localhost:8000/auth/tipos').then(r => r.json());
+    const tipos = await fetch('/auth/tipos').then(r => r.json());
     tipos.forEach(t => { tiposMap[t.id_tipo] = t.nombre; });
 
     // 2. Zonas — círculos de área + heatmap points
@@ -143,7 +143,8 @@ async function cargarReportesExistentes() {
 }
 
 function conectarWS() {
-  ws = new WebSocket('ws://localhost:8000/ws/mapa');
+  const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${wsProto}//${window.location.host}/ws/mapa`);
   const dot = '<i class="bi bi-circle-fill" style="font-size:.38rem"></i>';
 
   function setWsBadge(on) {

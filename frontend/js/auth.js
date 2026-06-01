@@ -90,7 +90,7 @@ async function cargarJuntas() {
   const sel = document.getElementById('reg-junta');
   if (!sel || sel.options.length > 1) return;
   try {
-    const juntas = await fetch('http://localhost:8000/auth/juntas').then(r => r.json());
+    const juntas = await fetch('/auth/juntas').then(r => r.json());
     juntas.forEach(j => {
       const opt = document.createElement('option');
       opt.value = j.id_junta; opt.textContent = j.nombre;

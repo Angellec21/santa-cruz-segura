@@ -179,7 +179,7 @@
       const [reportes, zonas, tipos] = await Promise.all([
         api('/reportes/mis'),
         api('/zonas'),
-        fetch('http://localhost:8000/auth/tipos').then(r => r.json()),
+        fetch('/auth/tipos').then(r => r.json()),
       ]);
       todosReportes = reportes;
       zonas.forEach(z => zonaMap[z.id_zona] = z);

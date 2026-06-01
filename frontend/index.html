@@ -255,12 +255,12 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:.9rem;height:.9rem;border-width:2px"></span>Ingresando…';
       try {
-        const data = await fetch('http://localhost:8000/auth/login', {
+        const data = await fetch('/auth/login', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body:JSON.stringify({ email:document.getElementById('login-email').value, password:document.getElementById('login-password').value }),
         }).then(r => { if(!r.ok) throw new Error('Email o contraseña incorrectos'); return r.json(); });
         saveToken(data.access_token);
-        const me = await fetch('http://localhost:8000/usuarios/me', { headers:{'Authorization':'Bearer '+data.access_token} }).then(r=>r.json());
+        const me = await fetch('/usuarios/me', { headers:{'Authorization':'Bearer '+data.access_token} }).then(r=>r.json());
         localStorage.setItem('scs_user', JSON.stringify(me));
         window.location.href = 'dashboard.html';
       } catch(e) {
@@ -276,7 +276,7 @@
       errEl.classList.add('d-none'); okEl.classList.add('d-none');
       btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:.9rem;height:.9rem;border-width:2px"></span>Creando…';
       try {
-        await fetch('http://localhost:8000/auth/register', {
+        await fetch('/auth/register', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body:JSON.stringify({
             nombre:document.getElementById('reg-nombre').value,
@@ -300,7 +300,7 @@
       document.getElementById('tab-login').classList.contains('d-none') ? doRegister() : doLogin();
     });
 
-    fetch('http://localhost:8000/auth/juntas').then(r=>r.json()).then(juntas => {
+    fetch('/auth/juntas').then(r=>r.json()).then(juntas => {
       const sel = document.getElementById('reg-junta');
       juntas.forEach(j => { const o=document.createElement('option'); o.value=j.id_junta; o.textContent=j.nombre; sel.appendChild(o); });
     }).catch(()=>{});

@@ -65,7 +65,7 @@ async function cerrarAlerta(id, btn) {
 
 async function cargarSelectsAlerta() {
   try {
-    const [zonas, juntas] = await Promise.all([api('/zonas'), fetch('http://localhost:8000/auth/juntas').then(r => r.json())]);
+    const [zonas, juntas] = await Promise.all([api('/zonas'), fetch('/auth/juntas').then(r => r.json())]);
     const selZona = document.getElementById('alerta-zona');
     zonas.forEach(z => { const o = document.createElement('option'); o.value = z.id_zona; o.textContent = z.nombre; selZona.appendChild(o); });
     const selJunta = document.getElementById('alerta-junta');

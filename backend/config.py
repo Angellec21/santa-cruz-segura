@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -7,7 +9,7 @@ class Settings(BaseSettings):
     DB_NAME: str = "santa_cruz_segura"
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
-    DATABASE_URL: str | None = None  # override completo (Aiven lo provee)
+    DATABASE_URL: Optional[str] = None  # override completo (Aiven lo provee)
 
     SECRET_KEY: str = "cambia_esto"
     ALGORITHM: str = "HS256"

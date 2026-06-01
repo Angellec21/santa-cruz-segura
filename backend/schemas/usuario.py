@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
 
@@ -8,7 +8,7 @@ class UsuarioResponse(BaseModel):
     id_usuario: int
     nombre: str
     apellido: str
-    email: EmailStr
+    email: str
     telefono: str | None
     id_junta: int
     id_rol: int

@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
@@ -16,7 +16,7 @@ class TokenResponse(BaseModel):
 class RegisterRequest(BaseModel):
     nombre: str
     apellido: str
-    email: EmailStr
+    email: str
     telefono: Optional[str] = None
     password: str
     id_junta: int

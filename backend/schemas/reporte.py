@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
@@ -33,3 +34,11 @@ class ReporteResponse(BaseModel):
 
 class ReporteEstadoUpdate(BaseModel):
     estado: EstadoReporte
+
+
+class ReporteGestionResponse(ReporteResponse):
+    """Respuesta extendida para directivo/autoridad/admin con info del reportante."""
+    tipo_nombre: Optional[str] = None
+    zona_nombre: Optional[str] = None
+    reporter_nombre: Optional[str] = None    # siempre visible para admin
+    reporter_apellido: Optional[str] = None  # siempre visible para admin

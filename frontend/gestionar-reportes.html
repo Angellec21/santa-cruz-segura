@@ -199,6 +199,7 @@
             <th>#</th>
             <th>Tipo incidente</th>
             <th class="col-zona">Zona</th>
+            <th>Reportante</th>
             <th class="col-desc">Descripción</th>
             <th class="col-fecha">Fecha</th>
             <th>Estado</th>
@@ -206,7 +207,7 @@
           </tr>
         </thead>
         <tbody id="tbody-reportes">
-          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Cargando…</td></tr>
+          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Cargando…</td></tr>
         </tbody>
       </table>
     </div>
@@ -270,11 +271,11 @@
 
   async function cargarReportes() {
     const tbody = document.getElementById('tbody-reportes');
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Cargando…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Cargando…</td></tr>';
     const estado = document.getElementById('filtro-estado').value;
     const tipo   = document.getElementById('filtro-tipo').value;
     const zona   = document.getElementById('filtro-zona').value;
-    let url = '/reportes?';
+    let url = '/reportes/gestion?';
     if (estado) url += `estado=${estado}&`;
     if (tipo)   url += `id_tipo=${tipo}&`;
     if (zona)   url += `id_zona=${zona}&`;
@@ -283,7 +284,7 @@
       todosLosReportes = reportes;
       actualizarStats(reportes);
       if (!reportes.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">No hay reportes con estos filtros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No hay reportes con estos filtros.</td></tr>';
         return;
       }
       tbody.innerHTML = reportes.map(r => `
@@ -291,6 +292,12 @@
           <td style="color:var(--muted);font-size:.76rem">#${r.id_reporte}</td>
           <td style="font-weight:600;font-size:.83rem">${r.tipo_nombre || '—'}</td>
           <td class="col-zona" style="color:var(--muted);font-size:.8rem">${r.zona_nombre || r.id_zona}</td>
+          <td style="font-size:.8rem;">
+            ${r.anonimo && r.reporter_nombre === 'Anónimo'
+              ? `<span style="color:var(--muted);font-style:italic">Anónimo</span>`
+              : `<span style="font-weight:600">${r.reporter_nombre || ''} ${r.reporter_apellido || ''}</span>`}
+            ${r.anonimo ? `<span style="font-size:.68rem;color:var(--yellow);margin-left:.3rem" title="El vecino marcó anónimo">⚠ anón.</span>` : ''}
+          </td>
           <td class="col-desc" style="color:var(--muted);font-size:.8rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.descripcion || '—'}</td>
           <td class="col-fecha" style="color:var(--muted);font-size:.78rem;white-space:nowrap">${new Date(r.fecha_reporte).toLocaleDateString('es-BO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
           <td><span class="est-badge ${EST_CLS[r.estado] || 'est-pendiente'}">${r.estado}</span></td>
@@ -302,7 +309,7 @@
           </td>
         </tr>`).join('');
     } catch(e) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:2rem">Error al cargar reportes.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--red);padding:2rem">Error al cargar reportes.</td></tr>';
     }
   }
 
@@ -332,7 +339,10 @@
       <div class="det-row"><span class="det-label">Lat / Lng:</span><span class="det-val">${r.latitud}, ${r.longitud}</span></div>
       <div class="det-row"><span class="det-label">Fecha:</span><span class="det-val">${new Date(r.fecha_incidente).toLocaleString('es-BO')}</span></div>
       <div class="det-row"><span class="det-label">Reportado:</span><span class="det-val">${new Date(r.fecha_reporte).toLocaleString('es-BO')}</span></div>
-      <div class="det-row"><span class="det-label">Anónimo:</span><span class="det-val">${r.anonimo ? 'Sí' : 'No'}</span></div>
+      <div class="det-row"><span class="det-label">Anónimo:</span><span class="det-val">${r.anonimo ? 'Sí ⚠' : 'No'}</span></div>
+      <div class="det-row"><span class="det-label">Reportante:</span><span class="det-val" style="font-weight:700;color:${r.anonimo && r.reporter_nombre==='Anónimo' ? 'var(--muted)' : 'var(--cyan)'}">
+        ${r.reporter_nombre === 'Anónimo' ? 'Anónimo (ocultado para no-admin)' : `${r.reporter_nombre || ''} ${r.reporter_apellido || ''}`}
+      </span></div>
     `;
     new bootstrap.Modal(document.getElementById('modalDetalle')).show();
   }

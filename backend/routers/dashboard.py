@@ -2,17 +2,15 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from backend.models.usuario import Usuario
-from backend.utils.deps import get_db, get_current_user, require_role, ROL_DIRECTIVO, ROL_ADMIN, ROL_AUTORIDAD
+from backend.utils.deps import get_db, get_current_user
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
-
-_ROLES_DASH = [ROL_DIRECTIVO, ROL_ADMIN, ROL_AUTORIDAD]
 
 
 @router.get("/resumen")
 def resumen(
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_role(_ROLES_DASH)),
+    _: Usuario = Depends(get_current_user),
 ):
     rows = db.execute(text("SELECT * FROM v_resumen_barrio")).mappings().all()
     return [dict(r) for r in rows]
@@ -21,7 +19,7 @@ def resumen(
 @router.get("/tendencia")
 def tendencia(
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_role(_ROLES_DASH)),
+    _: Usuario = Depends(get_current_user),
 ):
     rows = db.execute(text("""
         SELECT DATE(fecha_reporte) AS fecha, COUNT(*) AS total
@@ -36,7 +34,7 @@ def tendencia(
 @router.get("/tipos")
 def tipos(
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_role(_ROLES_DASH)),
+    _: Usuario = Depends(get_current_user),
 ):
     rows = db.execute(text("""
         SELECT ti.nombre, COUNT(r.id_reporte) AS total

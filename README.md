@@ -238,7 +238,7 @@ Navegador	Chrome, Firefox, Edge, Safari
 
 ⚙️ Instalación y Configuración
 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/santa-cruz-segura.git
+git clone https://github.com/Angellec21/santa-cruz-segura.git
 cd santa-cruz-segura
 
 2. Crear entorno virtual
@@ -458,5 +458,3 @@ CSS/HTML: kebab-case
 
 📄 Licencia
 UPDS
-📞 Contacto
-| Recurso | Enlace | |---------|--------| | **Documentación completa** | [Google Drive](https://drive.google.com/drive/folders/1HXZqqYPVU5HvbYCr5LiGRrGLIiw-v56L?usp=sharing) | | **Repositorio** | [GitHub](https://github.com/Angellec21/santa-cruz-segura) | | **Reporte de bugs** | [Issues](https://github.com/Angellec21/santa-cruz-segura/issues) | | **Correo** | soporte@santacruzsegura.bo |

@@ -22,6 +22,23 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
   window.location.href = '/index.html';
 });
 
+// Muestra links del sidebar según el rol del usuario
+function initSidebarLinks() {
+  const user = getUser();
+  if (!user) return;
+  // Gestionar reportes: directivo (2), autoridad (3), admin (4)
+  if (user.id_rol >= 2) {
+    document.getElementById('link-gestionar')?.classList.remove('d-none');
+  }
+  // Usuarios (admin): solo admin (4)
+  if (user.id_rol === 4) {
+    document.getElementById('link-admin')?.classList.remove('d-none');
+  }
+}
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', initSidebarLinks);
+
 // ---- Login / Register (solo index.html) ----
 const loginForm = document.getElementById('login-form');
 if (loginForm) {

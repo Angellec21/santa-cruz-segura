@@ -49,9 +49,13 @@ async function cargarAlertaBanner() {
 
 // ── Dashboard resumen ─────────────────────────────────────────────────────────
 async function cargarResumen() {
+  const tbody = document.querySelector('#tabla-barrios tbody');
   try {
     const resumen = await api('/dashboard/resumen');
-    if (!resumen.length) return;
+    if (!resumen.length) {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Sin datos disponibles.</td></tr>';
+      return;
+    }
 
     const totales = resumen.reduce((acc, r) => {
       acc.reportes += r.reportes_30d || 0;
@@ -70,7 +74,9 @@ async function cargarResumen() {
     rEl.style.color = NIVEL_COLOR[totales.riesgo_max] || '#64748b';
 
     renderTabla(resumen);
-  } catch {}
+  } catch {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f87171;padding:1.5rem">No se pudo cargar el resumen.</td></tr>';
+  }
 }
 
 function renderTabla(resumen) {

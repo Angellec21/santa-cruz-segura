@@ -2,7 +2,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.models.usuario import Usuario
-from backend.schemas.usuario import UsuarioResponse, UsuarioEstadoUpdate
+from backend.schemas.usuario import UsuarioResponse, UsuarioEstadoUpdate, UsuarioRolUpdate
 from backend.utils.deps import get_db, get_current_user, require_role, ROL_ADMIN
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
@@ -32,6 +32,24 @@ def cambiar_estado(
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     user.activo = data.activo
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.put("/{id_usuario}/rol", response_model=UsuarioResponse)
+def cambiar_rol(
+    id_usuario: int,
+    data: UsuarioRolUpdate,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_role([ROL_ADMIN])),
+):
+    user = db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if data.id_rol not in (1, 2, 3, 4):
+        raise HTTPException(status_code=400, detail="Rol inválido")
+    user.id_rol = data.id_rol
     db.commit()
     db.refresh(user)
     return user

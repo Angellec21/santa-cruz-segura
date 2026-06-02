@@ -56,6 +56,9 @@
     .btn-activar:hover{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.4);}
     .btn-suspender{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171;border-radius:7px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;}
     .btn-suspender:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
+    .btn-rol{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:#a78bfa;border-radius:7px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;margin-right:.3rem;}
+    .btn-rol:hover{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);}
+    .rol-select{background:#0a1a12;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.5rem .75rem;font-size:.85rem;font-family:'Inter',sans-serif;width:100%;}
 
     .modal-content{background:#081510;border:1px solid var(--border);}
     .modal-header-scs{background:rgba(0,212,122,.08);border-bottom:1px solid var(--border-acc);color:var(--cyan);}
@@ -151,6 +154,32 @@
   </div>
 
   <!-- Modal Confirmar estado -->
+  <!-- Modal cambiar rol -->
+  <div class="modal fade" id="modalRol" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content shadow">
+        <div class="modal-header" style="background:rgba(167,139,250,.1);border-bottom:1px solid rgba(167,139,250,.2);">
+          <h6 class="modal-title mb-0 fs-6" style="color:#a78bfa"><i class="bi bi-shield-lock me-2"></i>Cambiar rol</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+        </div>
+        <div class="modal-body py-3">
+          <p id="modal-rol-msg" class="mb-2" style="font-size:.85rem;color:var(--muted)"></p>
+          <select id="select-nuevo-rol" class="rol-select">
+            <option value="1">Vecino</option>
+            <option value="2">Directivo</option>
+            <option value="3">Autoridad</option>
+            <option value="4">Admin</option>
+          </select>
+        </div>
+        <div class="modal-footer border-0" style="background:#081510">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-sm fw-semibold" id="btn-confirmar-rol"
+            style="background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.3);color:#a78bfa">Guardar rol</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal fade" id="modalEstado" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content shadow">
@@ -211,6 +240,9 @@
             <td><span class="rol-badge ${ROL_CLS[u.id_rol] || 'rol-vecino'}">${ROL_NOMBRES[u.id_rol] || u.id_rol}</span></td>
             <td><span class="${u.activo ? 'estado-activo' : 'estado-suspendido'}">${u.activo ? 'Activo' : 'Suspendido'}</span></td>
             <td>
+              <button onclick="abrirCambiarRol(${u.id_usuario}, ${u.id_rol}, '${u.nombre}')" class="btn-rol">
+                <i class="bi bi-shield-lock me-1"></i><span class="d-none d-md-inline">Rol</span>
+              </button>
               <button onclick="confirmarEstado(${u.id_usuario}, ${u.activo}, '${u.nombre}')"
                 class="${u.activo ? 'btn-suspender' : 'btn-activar'}">
                 <i class="bi bi-${u.activo ? 'person-slash' : 'person-check'} me-1"></i>
@@ -239,6 +271,27 @@
       await api(`/usuarios/${pendingToggle.id}/estado`, { method: 'PUT', body: JSON.stringify({ activo: !pendingToggle.activo }) });
       bootstrap.Modal.getInstance(document.getElementById('modalEstado')).hide();
       cargarUsuarios();
+    });
+
+    let pendingRol = null;
+
+    function abrirCambiarRol(id, rolActual, nombre) {
+      pendingRol = { id };
+      document.getElementById('modal-rol-msg').textContent = `Usuario: ${nombre}`;
+      document.getElementById('select-nuevo-rol').value = rolActual;
+      new bootstrap.Modal(document.getElementById('modalRol')).show();
+    }
+
+    document.getElementById('btn-confirmar-rol').addEventListener('click', async () => {
+      if (!pendingRol) return;
+      const nuevoRol = parseInt(document.getElementById('select-nuevo-rol').value);
+      try {
+        await api(`/usuarios/${pendingRol.id}/rol`, { method: 'PUT', body: JSON.stringify({ id_rol: nuevoRol }) });
+        bootstrap.Modal.getInstance(document.getElementById('modalRol')).hide();
+        cargarUsuarios();
+      } catch(e) {
+        alert('Error al cambiar rol: ' + e.message);
+      }
     });
 
     cargarUsuarios();

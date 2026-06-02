@@ -22,3 +22,7 @@ class UsuarioResponse(BaseModel):
 
 class UsuarioEstadoUpdate(BaseModel):
     activo: bool
+
+
+class UsuarioRolUpdate(BaseModel):
+    id_rol: int

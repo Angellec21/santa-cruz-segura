@@ -166,6 +166,13 @@ async function cargarTipos() {
 }
 
 // ── IA Predicciones panel ─────────────────────────────────────────────────────
+const ALERTA_IA = {
+  critico: { label:'⚠ ZONA CRÍTICA',    color:'#f87171', bg:'rgba(248,113,113,.12)', border:'rgba(248,113,113,.3)',  pulse:true  },
+  alto:    { label:'⚠ ZONA INSEGURA',   color:'#f87171', bg:'rgba(248,113,113,.08)', border:'rgba(248,113,113,.2)',  pulse:true  },
+  medio:   { label:'⚡ PRECAUCIÓN',      color:'#fbbf24', bg:'rgba(251,191,36,.08)',  border:'rgba(251,191,36,.2)',   pulse:false },
+  bajo:    { label:'✓ ZONA SEGURA',      color:'#34d399', bg:'rgba(52,211,153,.06)',  border:'rgba(52,211,153,.15)', pulse:false },
+};
+
 async function cargarPredicciones() {
   const container = document.getElementById('ai-zonas-list');
   if (!container) return;
@@ -180,26 +187,36 @@ async function cargarPredicciones() {
 
     const puedePredir = user && [2, 3, 4].includes(user.id_rol);
 
+    // Auto-predecir zonas sin predicción (sin bloquear el render)
+    const sinPred = zonas.filter(z => !predMap[z.id_zona]);
+    if (sinPred.length && puedePredir) {
+      sinPred.forEach(z => api(`/ia/predecir/${z.id_zona}`, { method:'POST' })
+        .then(() => cargarPredicciones()).catch(() => {}));
+    }
+
     container.innerHTML = zonas.map(z => {
       const pred = predMap[z.id_zona];
       const actual = z.nivel_riesgo || 'bajo';
       const nivelPred = pred?.nivel_predicho || null;
       const prob = pred ? Math.round((pred.probabilidad || 0) * 100) : null;
-      const color = NIVEL_COLOR[actual];
+      const colorActual = NIVEL_COLOR[actual];
+      const alerta = nivelPred ? ALERTA_IA[nivelPred] : null;
+      const esInsegura = nivelPred === 'alto' || nivelPred === 'critico';
 
-      return `<div class="zona-row">
-        <div class="nivel-dot" style="background:${color}"></div>
+      return `<div class="zona-row" style="${alerta ? `border-color:${alerta.border};background:${alerta.bg}` : ''}">
+        <div class="nivel-dot" style="background:${colorActual};${esInsegura ? 'animation:blink 1.2s infinite' : ''}"></div>
         <div style="flex:1;min-width:0">
           <div class="zona-name text-truncate">${z.nombre}</div>
-          <div class="zona-actual">Actual: <b style="color:${color}">${actual}</b></div>
+          <div class="zona-actual">Actual: <b style="color:${colorActual}">${actual}</b></div>
+          ${alerta ? `<div style="font-size:.68rem;font-weight:700;color:${alerta.color};margin-top:.2rem;letter-spacing:.02em">${alerta.label}</div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0">
           ${nivelPred
-            ? `<div><span class="pred-badge ${NIVEL_CLASS[nivelPred]}">${nivelPred}</span></div>
-               <div class="pred-prob">${prob}% confianza</div>`
-            : `<div class="pred-prob" style="color:#cbd5e1">Sin predicción</div>`}
+            ? `<div><span class="pred-badge ${NIVEL_CLASS[nivelPred]}" style="${esInsegura ? `box-shadow:0 0 8px ${alerta.color}40` : ''}">${nivelPred.toUpperCase()}</span></div>
+               <div class="pred-prob" style="color:${alerta ? alerta.color : '#94a3b8'};font-weight:${esInsegura ? '700' : '400'}">${prob}% confianza</div>`
+            : `<div class="pred-prob" style="color:#64748b;font-style:italic">Calculando…</div>`}
           ${puedePredir
-            ? `<button class="btn-pred mt-1" onclick="predecirZona(${z.id_zona},this)"><i class="bi bi-cpu"></i> Predecir</button>`
+            ? `<button class="btn-pred mt-1" id="btn-pred-${z.id_zona}" onclick="predecirZona(${z.id_zona},this)"><i class="bi bi-arrow-clockwise"></i></button>`
             : ''}
         </div>
       </div>`;
@@ -217,7 +234,7 @@ window.predecirZona = async function(id_zona, btn) {
     await cargarPredicciones();
   } catch {
     btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-cpu"></i> Predecir';
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
   }
 };
 

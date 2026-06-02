@@ -252,18 +252,25 @@ document.getElementById('btn-enviar-reporte').addEventListener('click', async ()
       }),
     });
 
-    const archivo = document.getElementById('evidencia').files[0];
-    if (archivo) {
-      const form = new FormData();
-      form.append('archivo', archivo);
-      await apiForm(`/reportes/${reporte.id_reporte}/evidencia`, form);
-    }
-
     // Agregar el nuevo reporte al heatmap inmediatamente
     heatLayer.addLatLng([lat, lng, 0.9]);
 
+    // Mostrar éxito del reporte antes de intentar subir evidencia
     msgEl.innerHTML = '<i class="bi bi-check-circle me-1"></i>Reporte enviado. Gracias por colaborar con tu barrio.';
     msgEl.classList.remove('d-none');
+
+    // Subir evidencia (opcional) — si falla, el reporte ya está guardado
+    const archivo = document.getElementById('evidencia').files[0];
+    if (archivo) {
+      try {
+        const form = new FormData();
+        form.append('archivo', archivo);
+        await apiForm(`/reportes/${reporte.id_reporte}/evidencia`, form);
+        msgEl.innerHTML += ' <i class="bi bi-paperclip ms-1"></i>Evidencia adjuntada.';
+      } catch (evErr) {
+        msgEl.innerHTML += `<br><small class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Evidencia no subida: ${evErr.message}</small>`;
+      }
+    }
 
     setTimeout(() => {
       bootstrap.Modal.getInstance(document.getElementById('modalReporte')).hide();
@@ -276,7 +283,7 @@ document.getElementById('btn-enviar-reporte').addEventListener('click', async ()
       document.getElementById('pin-hint').style.display = '';
       const info = document.getElementById('zona-detectada-info');
       if (info) info.textContent = '';
-    }, 2000);
+    }, 2500);
 
   } catch (ex) {
     errEl.textContent = ex.message;

@@ -87,10 +87,10 @@ def cambiar_estado(
 
 
 @router.post("/{id_reporte}/evidencia", status_code=201)
-def subir_evidencia(
+async def subir_evidencia(
     id_reporte: int,
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    return reporte_service.guardar_evidencia(id_reporte, archivo, db)
+    return await reporte_service.guardar_evidencia(id_reporte, archivo, db)

@@ -60,31 +60,44 @@ def actualizar_estado(id_reporte: int, data: ReporteEstadoUpdate, db: Session) -
     return reporte
 
 
-def guardar_evidencia(id_reporte: int, archivo: UploadFile, db: Session) -> Evidencia:
+async def guardar_evidencia(id_reporte: int, archivo: UploadFile, db: Session) -> Evidencia:
     reporte = db.query(Reporte).filter(Reporte.id_reporte == id_reporte).first()
     if not reporte:
         raise HTTPException(status_code=404, detail="Reporte no encontrado")
 
-    ext = archivo.filename.rsplit(".", 1)[-1].lower()
+    contenido = await archivo.read()
+    limite = settings.MAX_UPLOAD_MB * 1024 * 1024
+    if len(contenido) > limite:
+        raise HTTPException(status_code=413, detail=f"El archivo excede el límite de {settings.MAX_UPLOAD_MB} MB")
+    if not contenido:
+        raise HTTPException(status_code=400, detail="El archivo está vacío")
+
+    nombre = archivo.filename or "archivo"
+    ext = nombre.rsplit(".", 1)[-1].lower() if "." in nombre else "jpg"
     tipo_map = {
-        "jpg": TipoArchivo.imagen, "jpeg": TipoArchivo.imagen, "png": TipoArchivo.imagen,
+        "jpg": TipoArchivo.imagen, "jpeg": TipoArchivo.imagen,
+        "png": TipoArchivo.imagen, "gif": TipoArchivo.imagen, "webp": TipoArchivo.imagen,
         "mp4": TipoArchivo.video, "avi": TipoArchivo.video,
-        "mp3": TipoArchivo.audio, "wav": TipoArchivo.audio,
+        "mov": TipoArchivo.video, "webm": TipoArchivo.video,
+        "mp3": TipoArchivo.audio, "wav": TipoArchivo.audio, "ogg": TipoArchivo.audio,
     }
     tipo = tipo_map.get(ext, TipoArchivo.imagen)
 
     nombre_guardado = f"{uuid.uuid4()}.{ext}"
-    ruta = os.path.join(settings.UPLOAD_DIR, nombre_guardado)
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    upload_dir = settings.UPLOAD_DIR.rstrip("/")
+    os.makedirs(upload_dir, exist_ok=True)
 
-    with open(ruta, "wb") as f:
-        f.write(archivo.file.read())
+    ruta_local = os.path.join(upload_dir, nombre_guardado)
+    with open(ruta_local, "wb") as f:
+        f.write(contenido)
+
+    url_publica = f"/{upload_dir}/{nombre_guardado}"
 
     evidencia = Evidencia(
         id_reporte=id_reporte,
         tipo_archivo=tipo,
-        ruta_archivo=ruta,
-        nombre_original=archivo.filename,
+        ruta_archivo=url_publica,
+        nombre_original=nombre,
     )
     db.add(evidencia)
     db.commit()

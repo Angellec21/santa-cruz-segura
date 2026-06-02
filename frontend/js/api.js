@@ -27,6 +27,9 @@ async function apiForm(path, formData) {
   const headers = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: formData });
-  if (!res.ok) throw new Error(`Error ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Error al subir archivo (${res.status})`);
+  }
   return res.json();
 }

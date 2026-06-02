@@ -26,3 +26,8 @@ class UsuarioEstadoUpdate(BaseModel):
 
 class UsuarioRolUpdate(BaseModel):
     id_rol: int
+
+
+class PasswordChange(BaseModel):
+    password_actual: str
+    password_nueva: str

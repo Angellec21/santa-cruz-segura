@@ -153,7 +153,7 @@ graph TD
     B2 --> D
     B3 -->|Broadcast| A
     C -->|Predicción| B
-
+```
     Flujo principal de datos:
 
 El usuario interactúa con el frontend (Bootstrap + Leaflet)

@@ -27,11 +27,12 @@ function initSidebarLinks() {
   const user = getUser();
   if (!user) return;
   // Gestionar reportes: directivo (2), autoridad (3), admin (4)
-  if (user.id_rol >= 2) {
+  const rol = Number(user.id_rol);
+  if (rol >= 2) {
     document.getElementById('link-gestionar')?.classList.remove('d-none');
   }
   // Usuarios (admin): solo admin (4)
-  if (user.id_rol === 4) {
+  if (rol === 4) {
     document.getElementById('link-admin')?.classList.remove('d-none');
   }
 }
@@ -52,43 +53,41 @@ initSidebarLinks();
   logoutBtn.parentNode.insertBefore(btn, logoutBtn);
 })()
 
-// ── Modal cambiar contraseña (inyectado globalmente en todas las páginas con sidebar) ──
+// ── Modal cambiar contraseña — sin dependencia de Bootstrap JS ──
 function injectPasswordModal() {
-  if (document.getElementById('modal-cambiar-pass')) return; // ya existe
+  if (document.getElementById('modal-cambiar-pass')) return;
   const html = `
-  <div class="modal fade" id="modal-cambiar-pass" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content" style="background:#081510;border:1px solid rgba(255,255,255,.07)">
-        <div class="modal-header" style="background:rgba(0,212,122,.08);border-bottom:1px solid rgba(0,212,122,.2)">
-          <h6 class="modal-title" style="color:#00d47a;font-size:.9rem"><i class="bi bi-key me-2"></i>Cambiar contraseña</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+  <div id="modal-cambiar-pass" onclick="if(event.target===this)cerrarPassModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+    <div style="background:#081510;border:1px solid rgba(255,255,255,.1);border-radius:16px;width:100%;max-width:380px;margin:1rem;box-shadow:0 0 60px rgba(0,0,0,.6)">
+      <div style="background:rgba(0,212,122,.08);border-bottom:1px solid rgba(0,212,122,.2);padding:.85rem 1.2rem;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between">
+        <span style="color:#00d47a;font-weight:700;font-size:.9rem"><i class="bi bi-key me-2"></i>Cambiar contraseña</span>
+        <button onclick="cerrarPassModal()" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:1.1rem;line-height:1">✕</button>
+      </div>
+      <div style="padding:1.2rem">
+        <div id="pass-err" style="display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#fca5a5;border-radius:8px;padding:.5rem .75rem;font-size:.8rem;margin-bottom:.75rem"></div>
+        <div id="pass-ok"  style="display:none;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:#6ee7b7;border-radius:8px;padding:.5rem .75rem;font-size:.8rem;margin-bottom:.75rem"></div>
+        <div style="margin-bottom:.7rem">
+          <label style="font-size:.75rem;font-weight:600;color:#94a3b8;display:block;margin-bottom:.3rem">Contraseña actual</label>
+          <input type="password" id="pass-actual" placeholder="Tu contraseña actual"
+            style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .8rem;font-size:.85rem;color:#f1f5f9;font-family:Inter,sans-serif;box-sizing:border-box"/>
         </div>
-        <div class="modal-body" style="background:#081510">
-          <div id="pass-err" style="display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#fca5a5;border-radius:8px;padding:.5rem .75rem;font-size:.8rem;margin-bottom:.75rem"></div>
-          <div id="pass-ok"  style="display:none;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:#6ee7b7;border-radius:8px;padding:.5rem .75rem;font-size:.8rem;margin-bottom:.75rem"></div>
-          <div style="margin-bottom:.7rem">
-            <label style="font-size:.75rem;font-weight:600;color:#94a3b8;display:block;margin-bottom:.3rem">Contraseña actual</label>
-            <input type="password" id="pass-actual" placeholder="Tu contraseña actual"
-              style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .8rem;font-size:.85rem;color:#f1f5f9;font-family:'Inter',sans-serif"/>
-          </div>
-          <div style="margin-bottom:.7rem">
-            <label style="font-size:.75rem;font-weight:600;color:#94a3b8;display:block;margin-bottom:.3rem">Nueva contraseña</label>
-            <input type="password" id="pass-nueva" placeholder="Mínimo 6 caracteres"
-              style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .8rem;font-size:.85rem;color:#f1f5f9;font-family:'Inter',sans-serif"/>
-          </div>
-          <div>
-            <label style="font-size:.75rem;font-weight:600;color:#94a3b8;display:block;margin-bottom:.3rem">Confirmar nueva contraseña</label>
-            <input type="password" id="pass-confirmar" placeholder="Repite la nueva contraseña"
-              style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .8rem;font-size:.85rem;color:#f1f5f9;font-family:'Inter',sans-serif"/>
-          </div>
+        <div style="margin-bottom:.7rem">
+          <label style="font-size:.75rem;font-weight:600;color:#94a3b8;display:block;margin-bottom:.3rem">Nueva contraseña</label>
+          <input type="password" id="pass-nueva" placeholder="Mínimo 6 caracteres"
+            style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .8rem;font-size:.85rem;color:#f1f5f9;font-family:Inter,sans-serif;box-sizing:border-box"/>
         </div>
-        <div class="modal-footer" style="background:#081510;border-top:1px solid rgba(255,255,255,.07)">
-          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="btn-guardar-pass" onclick="guardarPassword()"
-            style="background:linear-gradient(135deg,rgba(0,212,122,.9),rgba(0,212,122,.7));border:none;color:#060e0a;font-weight:700;padding:.35rem 1rem;border-radius:7px;font-size:.82rem;cursor:pointer">
-            Guardar
-          </button>
+        <div>
+          <label style="font-size:.75rem;font-weight:600;color:#94a3b8;display:block;margin-bottom:.3rem">Confirmar nueva contraseña</label>
+          <input type="password" id="pass-confirmar" placeholder="Repite la nueva contraseña"
+            style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .8rem;font-size:.85rem;color:#f1f5f9;font-family:Inter,sans-serif;box-sizing:border-box"/>
         </div>
+      </div>
+      <div style="padding:.85rem 1.2rem;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:flex-end;gap:.6rem">
+        <button onclick="cerrarPassModal()" style="background:none;border:1px solid rgba(255,255,255,.12);color:#94a3b8;border-radius:7px;padding:.35rem .9rem;font-size:.82rem;cursor:pointer;font-family:Inter,sans-serif">Cancelar</button>
+        <button id="btn-guardar-pass" onclick="guardarPassword()"
+          style="background:linear-gradient(135deg,rgba(0,212,122,.9),rgba(0,212,122,.7));border:none;color:#060e0a;font-weight:700;padding:.35rem 1.1rem;border-radius:7px;font-size:.82rem;cursor:pointer;font-family:Inter,sans-serif">
+          Guardar
+        </button>
       </div>
     </div>
   </div>`;
@@ -102,8 +101,13 @@ function abrirCambiarPassword() {
   document.getElementById('pass-actual').value    = '';
   document.getElementById('pass-nueva').value     = '';
   document.getElementById('pass-confirmar').value = '';
-  const modal = new bootstrap.Modal(document.getElementById('modal-cambiar-pass'));
-  modal.show();
+  document.getElementById('modal-cambiar-pass').style.display = 'flex';
+  setTimeout(() => document.getElementById('pass-actual').focus(), 50);
+}
+
+function cerrarPassModal() {
+  const el = document.getElementById('modal-cambiar-pass');
+  if (el) el.style.display = 'none';
 }
 
 async function guardarPassword() {

@@ -38,7 +38,6 @@
 - [Manual de Usuario](#manual-de-usuario)
 - [Contribuciones](#contribuciones)
 - [Licencia](#licencia)
-- [Contacto](#contacto)
 
 ---
 
@@ -92,27 +91,27 @@ Los vecinos pueden reportar incidentes directamente desde el mapa, los directivo
 
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
-| HTML5 + CSS3 | - | Estructura y estilos |
+| HTML5 + CSS3 | — | Estructura y estilos |
 | Bootstrap 5 | 5.3.3 | Componentes responsivos |
 | Leaflet | 1.9.4 | Mapas interactivos |
 | Leaflet.heat | 0.2.0 | Mapa de calor |
 | Chart.js | 4.4.2 | Gráficas |
-| WebSocket API | - | Tiempo real |
+| WebSocket API | — | Tiempo real |
 
 ### Base de Datos
 
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
 | MySQL | 8.0 | Motor de base de datos |
-| Triggers | - | Actualización automática de riesgos |
-| Views | - | Resúmenes precalculados |
+| Triggers | — | Actualización automática de riesgos |
+| Views | — | Resúmenes precalculados |
 
 ### Despliegue
 
-| Tecnología | Versión | Propósito |
-|------------|---------|-----------|
-| Railway | - | Plataforma cloud |
-| Git | - | Control de versiones |
+| Tecnología | Propósito |
+|------------|-----------|
+| Railway | Plataforma cloud |
+| Git | Control de versiones |
 
 ---
 
@@ -121,7 +120,7 @@ Los vecinos pueden reportar incidentes directamente desde el mapa, los directivo
 ```mermaid
 graph TD
     subgraph Cliente
-        A[Frontend<br/>HTML + CSS + JavaScript]
+        A[Frontend\nHTML + CSS + JavaScript]
         A1[Bootstrap 5]
         A2[Leaflet Mapas]
         A3[WebSocket Client]
@@ -135,7 +134,7 @@ graph TD
     end
 
     subgraph ML
-        C[Random Forest<br/>Modelo Predictivo]
+        C[Random Forest\nModelo Predictivo]
     end
 
     subgraph DB
@@ -154,23 +153,21 @@ graph TD
     B3 -->|Broadcast| A
     C -->|Predicción| B
 ```
-    Flujo principal de datos:
 
-El usuario interactúa con el frontend (Bootstrap + Leaflet)
+**Flujo principal de datos:**
 
-Las peticiones HTTP viajan al backend FastAPI
+1. El usuario interactúa con el frontend (Bootstrap + Leaflet).
+2. Las peticiones HTTP viajan al backend FastAPI.
+3. Los routers dirigen a los servicios correspondientes.
+4. Los servicios consultan o actualizan MySQL.
+5. El WebSocket Manager envía eventos en tiempo real a todos los clientes.
+6. El modelo Random Forest predice niveles de riesgo bajo demanda.
 
-Los routers dirigen a los servicios correspondientes
+---
 
-Los servicios consultan o actualizan MySQL
+## 📁 Estructura del Proyecto
 
-El WebSocket Manager envía eventos en tiempo real a todos los clientes
-
-El modelo Random Forest predice niveles de riesgo bajo demanda
-
-
-📁 Estructura del Proyecto
-
+```
 santa-cruz-segura/
 │
 ├── backend/
@@ -226,22 +223,34 @@ santa-cruz-segura/
 ├── requirements.txt
 ├── railway.json
 └── README.md
+```
 
+---
 
-📋 Requisitos Previos
-Requisito	Versión
-Python	3.9+
-MySQL	8.0+
-pip	última versión
-Git	2.x+ (opcional)
-Navegador	Chrome, Firefox, Edge, Safari
+## 📋 Requisitos Previos
 
-⚙️ Instalación y Configuración
-1. Clonar el repositorio
+| Requisito | Versión |
+|-----------|---------|
+| Python | 3.9+ |
+| MySQL | 8.0+ |
+| pip | última versión |
+| Git | 2.x+ |
+| Navegador | Chrome, Firefox, Edge, Safari |
+
+---
+
+## ⚙️ Instalación y Configuración
+
+### 1. Clonar el repositorio
+
+```bash
 git clone https://github.com/Angellec21/santa-cruz-segura.git
 cd santa-cruz-segura
+```
 
-2. Crear entorno virtual
+### 2. Crear entorno virtual
+
+```bash
 # Linux / macOS
 python -m venv venv
 source venv/bin/activate
@@ -249,13 +258,20 @@ source venv/bin/activate
 # Windows
 python -m venv venv
 venv\Scripts\activate
+```
 
-3. Instalar dependencias
+### 3. Instalar dependencias
+
+```bash
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-4. Configurar variables de entorno
-Crea un archivo .env en la raíz:
+### 4. Configurar variables de entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=santa_cruz_segura
@@ -269,35 +285,46 @@ ACCESS_TOKEN_EXPIRE_MINUTES=480
 APP_ENV=development
 UPLOAD_DIR=uploads/
 MAX_UPLOAD_MB=10
+```
 
-5. Crear la base de datos
+### 5. Crear la base de datos
+
 Ejecuta el script SQL completo en MySQL Workbench.
 
-6. Entrenar el modelo de Machine Learning
+### 6. Entrenar el modelo de Machine Learning
+
+```bash
 python backend/ml/train.py
-Esto genera backend/ml/model.pkl.
+```
 
-🚀 Ejecución Local
+Esto genera el archivo `backend/ml/model.pkl`.
+
+---
+
+## 🚀 Ejecución Local
+
+```bash
 uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-Recurso	URL
-Aplicación web	http://localhost:8000
-Documentación API (Swagger)	http://localhost:8000/docs
-Documentación API (Redoc)	http://localhost:8000/redoc
-WebSocket Mapa	ws://localhost:8000/ws/mapa
+| Recurso | URL |
+|---------|-----|
+| Aplicación web | http://localhost:8000 |
+| Documentación API (Swagger) | http://localhost:8000/docs |
+| Documentación API (Redoc) | http://localhost:8000/redoc |
+| WebSocket Mapa | ws://localhost:8000/ws/mapa |
 
-☁️ Despliegue en Railway
-Crear cuenta en https://railway.app
+---
 
-Conectar repositorio GitHub
+## ☁️ Despliegue en Railway
 
-Configurar variables de entorno
+1. Crear cuenta en https://railway.app
+2. Conectar repositorio de GitHub
+3. Configurar las variables de entorno
+4. Añadir base de datos MySQL
+5. Railway ejecuta el despliegue automáticamente usando `railway.json`
 
-Añadir base de datos MySQL
-
-Railway ejecuta automáticamente con railway.json
-
-Archivo railway.json incluido:
+```json
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
@@ -309,61 +336,77 @@ Archivo railway.json incluido:
     "restartPolicyMaxRetries": 3
   }
 }
+```
 
-🗄️ Base de Datos
-Modelo simplificado
-usuario: id_usuario, nombre, email, password_hash, id_junta, id_rol
+---
 
-junta_vecinal: id_junta, nombre, distrito
+## 🗄️ Base de Datos
 
-zona_caliente: id_zona, nombre, latitud, longitud, radio, nivel_riesgo
+### Modelo simplificado
 
-reporte: id_reporte, latitud, longitud, estado, anonimo, id_zona, id_tipo
+- `usuario`: id_usuario, nombre, email, password_hash, id_junta, id_rol
+- `junta_vecinal`: id_junta, nombre, distrito
+- `zona_caliente`: id_zona, nombre, latitud, longitud, radio, nivel_riesgo
+- `reporte`: id_reporte, latitud, longitud, estado, anonimo, id_zona, id_tipo
+- `evidencia`: id_evidencia, tipo_archivo, ruta, id_reporte
+- `alerta`: id_alerta, titulo, tipo, estado, id_zona
+- `prediccion_ia`: id_prediccion, nivel_predicho, probabilidad, id_zona
 
-evidencia: id_evidencia, tipo_archivo, ruta, id_reporte
+### Trigger automático
 
-alerta: id_alerta, titulo, tipo, estado, id_zona
+Cuando se inserta un reporte, se actualiza automáticamente el nivel de riesgo de la zona según la cantidad de reportes registrados en los últimos 30 días.
 
-prediccion_ia: id_prediccion, nivel_predicho, probabilidad, id_zona
+---
 
-Trigger automático
-Cuando se inserta un reporte, se actualiza el nivel de riesgo de la zona según la cantidad de reportes en los últimos 30 días.
+## 📡 Endpoints de la API
 
-📡 Endpoints de la API
-Método	Endpoint	Descripción	Rol
-POST	/auth/login	Iniciar sesión	Público
-POST	/auth/register	Registrar usuario	Público
-GET	/usuarios/me	Mi perfil	Autenticado
-POST	/reportes	Crear reporte	Autenticado
-GET	/reportes/mis	Mis reportes	Autenticado
-GET	/reportes/gestion	Todos los reportes	Directivo/Autoridad/Admin
-PUT	/reportes/{id}/estado	Cambiar estado	Directivo/Admin
-GET	/zonas	Listar zonas	Autenticado
-GET	/alertas	Alertas activas	Autenticado
-POST	/alertas	Crear alerta	Directivo/Admin
-POST	/ia/predecir/{id}	Predecir riesgo	Directivo/Autoridad/Admin
-GET	/dashboard/resumen	Estadísticas	Autenticado
-🤖 Modelo de Machine Learning
-Algoritmo: Random Forest Classifier (100 árboles)
+| Método | Endpoint | Descripción | Rol requerido |
+|--------|----------|-------------|---------------|
+| POST | `/auth/login` | Iniciar sesión | Público |
+| POST | `/auth/register` | Registrar usuario | Público |
+| GET | `/usuarios/me` | Mi perfil | Autenticado |
+| POST | `/reportes` | Crear reporte | Autenticado |
+| GET | `/reportes/mis` | Mis reportes | Autenticado |
+| GET | `/reportes/gestion` | Todos los reportes | Directivo / Autoridad / Admin |
+| PUT | `/reportes/{id}/estado` | Cambiar estado de reporte | Directivo / Admin |
+| GET | `/zonas` | Listar zonas | Autenticado |
+| GET | `/alertas` | Alertas activas | Autenticado |
+| POST | `/alertas` | Crear alerta | Directivo / Admin |
+| POST | `/ia/predecir/{id}` | Predecir riesgo de zona | Directivo / Autoridad / Admin |
+| GET | `/dashboard/resumen` | Estadísticas generales | Autenticado |
 
-Característica de entrada: total_reportes_30d
+---
 
-Clases de salida: bajo (0), medio (1), alto (2), crítico (3)
+## 🤖 Modelo de Machine Learning
 
-Datos de entrenamiento (sintéticos):
+- **Algoritmo:** Random Forest Classifier (100 árboles)
+- **Característica de entrada:** `total_reportes_30d`
+- **Clases de salida:** `bajo (0)`, `medio (1)`, `alto (2)`, `crítico (3)`
 
-Reportes 30d	Muestras	Etiqueta
-0 - 4	200	bajo
-5 - 9	150	medio
-10 - 19	100	alto
-20 - 50	50	crítico
-Precisión en datos sintéticos: >95%
+**Datos de entrenamiento (sintéticos):**
 
-🔌 WebSockets en Tiempo Real
-Conexión:
+| Reportes en 30 días | Muestras | Etiqueta |
+|---------------------|----------|----------|
+| 0 – 4 | 200 | bajo |
+| 5 – 9 | 150 | medio |
+| 10 – 19 | 100 | alto |
+| 20 – 50 | 50 | crítico |
+
+**Precisión en datos sintéticos:** > 95%
+
+---
+
+## 🔌 WebSockets en Tiempo Real
+
+**Conexión:**
+
+```javascript
 const ws = new WebSocket('ws://localhost:8000/ws/mapa');
+```
 
-Mensaje de nuevo reporte:
+**Ejemplo de mensaje — nuevo reporte:**
+
+```json
 {
   "tipo": "nuevo_reporte",
   "id_reporte": 123,
@@ -373,88 +416,86 @@ Mensaje de nuevo reporte:
   "nivel_zona": "alto",
   "id_zona": 5
 }
+```
 
-Flujo:
+**Flujo:**
 
-Usuario A crea un reporte
+1. Usuario A crea un reporte.
+2. El backend guarda el registro en MySQL.
+3. El backend emite un broadcast a todos los clientes conectados.
+4. Todos los usuarios ven el nuevo marcador con animación en el mapa.
 
-Backend guarda en MySQL
+---
 
-Backend emite broadcast a todos los clientes conectados
+## 👥 Roles y Permisos
 
-Todos ven el nuevo marcador con animación
+| Rol | ID | Permisos principales |
+|-----|----|----------------------|
+| Vecino | 1 | Reportar, ver mapa y alertas, ver sus propios reportes |
+| Directivo | 2 | Todo lo de Vecino + gestionar reportes, crear alertas, usar predicción de IA |
+| Autoridad | 3 | Todo lo de Vecino + gestionar reportes (solo lectura), usar predicción de IA |
+| Admin | 4 | Todos los permisos + gestionar usuarios |
 
-👥 Roles y Permisos
-Rol	ID	Permisos principales
-Vecino	1	Reportar, ver mapa y alertas, ver sus reportes
-Directivo	2	Todo lo de vecino + gestionar reportes, crear alertas, predecir IA
-Autoridad	3	Todo lo de vecino + gestionar reportes (lectura), predecir IA
-Admin	4	Todos los permisos + gestionar usuarios
-👨‍💻 Manual de Usuario
-Registro e inicio de sesión
-Accede a http://localhost:8000
+---
 
-Pestaña "Registrarse" → completa tus datos
+## 👨‍💻 Manual de Usuario
 
-Inicia sesión con email y contraseña
+### Registro e inicio de sesión
 
-Reportar un incidente
-Ve a Reportar
+1. Accede a `http://localhost:8000`
+2. Selecciona la pestaña **Registrarse** y completa tus datos
+3. Inicia sesión con tu email y contraseña
 
-Haz clic en el mapa donde ocurrió el incidente
+### Reportar un incidente
 
-Completa el modal (tipo, zona, descripción, fecha)
+1. Ve a **Reportar**
+2. Haz clic en el mapa en el lugar donde ocurrió el incidente
+3. Completa el formulario (tipo, zona, descripción, fecha)
+4. Opcionalmente adjunta evidencia o marca la opción anónimo
+5. Envía el reporte — el mapa se actualizará para todos los usuarios
 
-Opcional: adjunta evidencia o marca anónimo
+### Ver mis reportes
 
-Enviar reporte → se actualiza para todos
+1. Ve a **Mis reportes**
+2. Verás todas tus denuncias organizadas en tarjetas
+3. Filtra por estado: pendiente, verificado, resuelto o descartado
 
-Ver mis reportes
-Ve a Mis reportes
+### Gestionar reportes *(Directivo / Autoridad / Admin)*
 
-Verás todas tus denuncias en tarjetas
+1. Ve a **Gestionar reportes**
+2. Usa los filtros para acotar la lista
+3. Cambia el estado de los reportes: verificar, resolver o descartar
 
-Filtra por estado (pendiente, verificado, resuelto, descartado)
+### Crear alerta *(Directivo / Admin)*
 
-Gestionar reportes (Directivo/Autoridad/Admin)
-Ve a Gestionar reportes
+1. Ve a **Alertas** → **Nueva alerta**
+2. Completa título, tipo, zona y junta vecinal
+3. Publica la alerta — aparecerá en el dashboard de todos los usuarios
 
-Usa filtros para acotar la lista
+### Panel de administración *(Admin)*
 
-Cambia estados: verificar, resolver, descartar
+1. Ve a **Usuarios**
+2. Visualiza la lista completa de usuarios
+3. Cambia roles o activa / suspende cuentas
 
-Crear alerta (Directivo/Admin)
-Ve a Alertas → "Nueva alerta"
+---
 
-Completa título, tipo, zona, junta
+## 🤝 Contribuciones
 
-Publicar → aparece en el dashboard
+1. Haz un fork del repositorio
+2. Crea una rama para tu funcionalidad: `git checkout -b feature/nueva-funcionalidad`
+3. Realiza tu commit: `git commit -m 'Agrega nueva funcionalidad'`
+4. Sube los cambios: `git push origin feature/nueva-funcionalidad`
+5. Abre un Pull Request
 
-Panel de administración (Admin)
-Ve a Usuarios
+**Guías de estilo:**
 
-Lista completa de usuarios
+- Python: PEP 8, 4 espacios de indentación
+- JavaScript: camelCase
+- CSS / HTML: kebab-case
 
-Cambiar rol o activar/suspender cuentas
+---
 
-🤝 Contribuciones
-Fork el repositorio
+## 📄 Licencia
 
-Rama de características (git checkout -b feature/nueva-funcionalidad)
-
-Commit (git commit -m 'Agrega nueva funcionalidad')
-
-Push (git push origin feature/nueva-funcionalidad)
-
-Pull Request
-
-Guías de estilo:
-
-Python: PEP 8, 4 espacios
-
-JavaScript: camelCase
-
-CSS/HTML: kebab-case
-
-📄 Licencia
-UPDS
+UPDS — Universidad Privada Domingo Savio

@@ -36,8 +36,8 @@ function initSidebarLinks() {
   }
 }
 
-// Ejecutar al cargar la página
-document.addEventListener('DOMContentLoaded', initSidebarLinks);
+// Scripts están al final del body → DOM ya existe, ejecutar directo
+initSidebarLinks();
 
 // ---- Login / Register (solo index.html) ----
 const loginForm = document.getElementById('login-form');

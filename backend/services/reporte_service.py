@@ -1,6 +1,9 @@
 from __future__ import annotations
+import io
 import os
 import uuid
+import cloudinary
+import cloudinary.uploader
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, UploadFile
 from backend.models.reporte import Reporte
@@ -83,15 +86,23 @@ async def guardar_evidencia(id_reporte: int, archivo: UploadFile, db: Session) -
     }
     tipo = tipo_map.get(ext, TipoArchivo.imagen)
 
-    nombre_guardado = f"{uuid.uuid4()}.{ext}"
-    upload_dir = settings.UPLOAD_DIR.rstrip("/")
-    os.makedirs(upload_dir, exist_ok=True)
-
-    ruta_local = os.path.join(upload_dir, nombre_guardado)
-    with open(ruta_local, "wb") as f:
-        f.write(contenido)
-
-    url_publica = f"/{upload_dir}/{nombre_guardado}"
+    if settings.CLOUDINARY_URL:
+        cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+        resource = "video" if tipo == TipoArchivo.video else "auto"
+        result = cloudinary.uploader.upload(
+            io.BytesIO(contenido),
+            resource_type=resource,
+            folder="santa-cruz-segura",
+            public_id=str(uuid.uuid4()),
+        )
+        url_publica = result["secure_url"]
+    else:
+        nombre_guardado = f"{uuid.uuid4()}.{ext}"
+        upload_dir = settings.UPLOAD_DIR.rstrip("/")
+        os.makedirs(upload_dir, exist_ok=True)
+        with open(os.path.join(upload_dir, nombre_guardado), "wb") as f:
+            f.write(contenido)
+        url_publica = f"/{upload_dir}/{nombre_guardado}"
 
     evidencia = Evidencia(
         id_reporte=id_reporte,

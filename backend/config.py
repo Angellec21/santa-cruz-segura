@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     UPLOAD_DIR: str = "uploads/"
     MAX_UPLOAD_MB: int = 10
+    CLOUDINARY_URL: Optional[str] = None
 
     class Config:
         env_file = ".env"

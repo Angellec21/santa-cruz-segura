@@ -276,18 +276,33 @@
       const okEl  = document.getElementById('reg-ok');
       const btn   = document.getElementById('btn-register');
       errEl.classList.add('d-none'); okEl.classList.add('d-none');
+
+      const nombre   = document.getElementById('reg-nombre').value.trim();
+      const apellido = document.getElementById('reg-apellido').value.trim();
+      const email    = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const juntaVal = document.getElementById('reg-junta').value;
+      const id_junta = parseInt(juntaVal, 10);
+
+      if (!nombre)          { errEl.textContent='Ingresa tu nombre.'; errEl.classList.remove('d-none'); return; }
+      if (!apellido)        { errEl.textContent='Ingresa tu apellido.'; errEl.classList.remove('d-none'); return; }
+      if (!email)           { errEl.textContent='Ingresa tu correo.'; errEl.classList.remove('d-none'); return; }
+      if (password.length < 6) { errEl.textContent='La contraseña debe tener al menos 6 caracteres.'; errEl.classList.remove('d-none'); return; }
+      if (!juntaVal || isNaN(id_junta)) { errEl.textContent='Selecciona tu junta vecinal.'; errEl.classList.remove('d-none'); return; }
+
       btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:.9rem;height:.9rem;border-width:2px"></span>Creando…';
       try {
-        await fetch('/auth/register', {
+        const resp = await fetch('/auth/register', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            nombre:document.getElementById('reg-nombre').value,
-            apellido:document.getElementById('reg-apellido').value,
-            email:document.getElementById('reg-email').value,
-            password:document.getElementById('reg-password').value,
-            id_junta:parseInt(document.getElementById('reg-junta').value),
-          }),
-        }).then(r => { if(!r.ok) return r.json().then(d=>{throw new Error(d.detail||'Error al registrar');}); return r.json(); });
+          body:JSON.stringify({ nombre, apellido, email, password, id_junta }),
+        });
+        if (!resp.ok) {
+          const d = await resp.json().catch(()=>({}));
+          const msg = Array.isArray(d.detail)
+            ? d.detail.map(e => e.msg).join(' | ')
+            : (d.detail || 'Error al registrar');
+          throw new Error(msg);
+        }
         okEl.textContent = '¡Cuenta creada! Ya puedes iniciar sesión.'; okEl.classList.remove('d-none');
         setTimeout(()=>showTab('login'), 2000);
       } catch(e) {

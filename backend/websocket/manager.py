@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import json
 from fastapi import WebSocket
 
@@ -12,15 +13,27 @@ class ConnectionManager:
         self._active.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self._active.remove(websocket)
+        try:
+            self._active.remove(websocket)
+        except ValueError:
+            pass
 
     async def broadcast(self, event: dict):
+        if not self._active:
+            return
         payload = json.dumps(event)
-        for ws in list(self._active):
-            try:
-                await ws.send_text(payload)
-            except Exception:
-                self._active.remove(ws)
+        snapshot = list(self._active)
+        results = await asyncio.gather(
+            *[ws.send_text(payload) for ws in snapshot],
+            return_exceptions=True,
+        )
+        for ws, result in zip(snapshot, results):
+            if isinstance(result, Exception):
+                self.disconnect(ws)
+
+    @property
+    def count(self) -> int:
+        return len(self._active)
 
 
 manager = ConnectionManager()

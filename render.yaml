@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: santa-cruz-segura
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: APP_ENV
+        value: production
+      - key: UPLOAD_DIR
+        value: uploads/
+      - key: MAX_UPLOAD_MB
+        value: "10"

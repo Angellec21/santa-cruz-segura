@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from backend.schemas.auth import LoginRequest, TokenResponse, RegisterRequest
 from backend.schemas.usuario import UsuarioResponse
@@ -7,6 +8,15 @@ from backend.services import auth_service
 from backend.models.junta_vecinal import JuntaVecinal
 from backend.models.tipo_incidente import TipoIncidente
 from backend.utils.deps import get_db
+
+
+class VerificarCodigoRequest(BaseModel):
+    email: str
+    codigo: str
+
+
+class ReenviarCodigoRequest(BaseModel):
+    email: str
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -45,6 +55,20 @@ def verificar_email(token: str, db: Session = Depends(get_db)):
     <p><a href='/index.html' style='color:#00d47a'>Volver al inicio</a></p>
     </div></body></html>
     """, status_code=400)
+
+
+@router.post("/verificar-codigo")
+def verificar_codigo(data: VerificarCodigoRequest, db: Session = Depends(get_db)):
+    ok = auth_service.verificar_codigo(data.email, data.codigo, db)
+    if not ok:
+        raise HTTPException(status_code=400, detail="Código incorrecto. Revisa tu correo.")
+    return {"message": "Correo verificado. Ya puedes iniciar sesión."}
+
+
+@router.post("/reenviar-codigo")
+def reenviar_codigo(data: ReenviarCodigoRequest, db: Session = Depends(get_db)):
+    auth_service.reenviar_codigo(data.email, db)
+    return {"message": "Código reenviado. Revisa tu bandeja de entrada."}
 
 
 @router.get("/juntas")

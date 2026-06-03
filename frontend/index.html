@@ -238,6 +238,47 @@
     </div>
   </div>
 
+  <!-- Modal verificación de código -->
+  <div id="modal-verificar" onclick="if(event.target===this)this.style.display='none'"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;
+           align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:#081510;border:1px solid rgba(0,212,122,.25);border-radius:18px;
+                width:100%;max-width:400px;margin:1rem;box-shadow:0 0 60px rgba(0,0,0,.7)">
+      <div style="background:rgba(0,212,122,.08);border-bottom:1px solid rgba(0,212,122,.2);
+                  padding:1rem 1.4rem;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:.6rem">
+        <i class="bi bi-envelope-check" style="color:#00d47a;font-size:1.1rem"></i>
+        <span style="color:#00d47a;font-weight:700;font-size:.95rem">Verifica tu correo</span>
+      </div>
+      <div style="padding:1.5rem 1.4rem">
+        <p style="color:#94a3b8;font-size:.85rem;margin-bottom:1rem">
+          Enviamos un código de 6 dígitos a<br>
+          <b id="verif-email-label" style="color:#f1f5f9"></b>
+        </p>
+        <div id="verif-err" style="display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);
+             color:#fca5a5;border-radius:8px;padding:.5rem .75rem;font-size:.82rem;margin-bottom:.75rem" class="d-none"></div>
+        <div id="verif-ok"  style="display:none;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);
+             color:#6ee7b7;border-radius:8px;padding:.5rem .75rem;font-size:.82rem;margin-bottom:.75rem" class="d-none"></div>
+        <input id="verif-codigo" type="text" inputmode="numeric" maxlength="6" placeholder="_ _ _ _ _ _"
+          style="width:100%;background:rgba(255,255,255,.05);border:2px solid rgba(0,212,122,.3);border-radius:12px;
+                 padding:.9rem;font-size:1.6rem;font-weight:800;letter-spacing:.5rem;text-align:center;
+                 color:#00d47a;font-family:Inter,monospace;box-sizing:border-box;outline:none"
+          oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)"/>
+        <button id="btn-verif" onclick="enviarCodigo()"
+          style="width:100%;margin-top:.9rem;padding:.75rem;border:none;border-radius:10px;cursor:pointer;
+                 font-size:.9rem;font-weight:700;font-family:Inter,sans-serif;
+                 background:linear-gradient(135deg,rgba(0,212,122,.9),rgba(0,212,122,.7));color:#060e0a">
+          Verificar
+        </button>
+        <button id="btn-reenviar" onclick="reenviarCodigo()"
+          style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(255,255,255,.08);
+                 border-radius:10px;cursor:pointer;font-size:.8rem;font-family:Inter,sans-serif;
+                 background:none;color:#64748b">
+          Reenviar código
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -280,6 +321,67 @@
       }
     }
 
+    // ── Modal verificación de código ──────────────────────────────────────────
+    let _emailPendiente = '';
+
+    function mostrarModalVerificacion(email) {
+      _emailPendiente = email;
+      document.getElementById('verif-email-label').textContent = email;
+      document.getElementById('verif-codigo').value = '';
+      document.getElementById('verif-err').classList.add('d-none');
+      document.getElementById('verif-ok').classList.add('d-none');
+      document.getElementById('modal-verificar').style.display = 'flex';
+      setTimeout(() => document.getElementById('verif-codigo').focus(), 80);
+    }
+
+    async function enviarCodigo() {
+      const errEl = document.getElementById('verif-err');
+      const okEl  = document.getElementById('verif-ok');
+      const btn   = document.getElementById('btn-verif');
+      const codigo = document.getElementById('verif-codigo').value.trim();
+      errEl.classList.add('d-none'); okEl.classList.add('d-none');
+      if (codigo.length !== 6 || isNaN(codigo)) {
+        errEl.textContent = 'El código debe ser de 6 dígitos.';
+        errEl.classList.remove('d-none'); return;
+      }
+      btn.disabled = true; btn.textContent = 'Verificando…';
+      try {
+        await fetch('/auth/verificar-codigo', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email: _emailPendiente, codigo }),
+        }).then(r => { if (!r.ok) return r.json().then(d => { throw new Error(d.detail); }); return r.json(); });
+        okEl.textContent = '¡Correo verificado! Ya puedes iniciar sesión.';
+        okEl.classList.remove('d-none');
+        setTimeout(() => {
+          document.getElementById('modal-verificar').style.display = 'none';
+          document.getElementById('login-email').value = _emailPendiente;
+          showTab('login');
+        }, 2000);
+      } catch(e) {
+        errEl.textContent = e.message || 'Código incorrecto.';
+        errEl.classList.remove('d-none');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Verificar';
+      }
+    }
+
+    async function reenviarCodigo() {
+      const btn = document.getElementById('btn-reenviar');
+      btn.disabled = true; btn.textContent = 'Enviando…';
+      await fetch('/auth/reenviar-codigo', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: _emailPendiente }),
+      }).catch(() => {});
+      btn.textContent = '¡Reenviado!';
+      setTimeout(() => { btn.disabled = false; btn.textContent = 'Reenviar código'; }, 5000);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('modal-verificar').style.display === 'flex') {
+        enviarCodigo();
+      }
+    });
+
     async function doRegister() {
       const errEl = document.getElementById('reg-err');
       const okEl  = document.getElementById('reg-ok');
@@ -312,8 +414,7 @@
             : (d.detail || 'Error al registrar');
           throw new Error(msg);
         }
-        okEl.textContent = '¡Cuenta creada! Ya puedes iniciar sesión.'; okEl.classList.remove('d-none');
-        setTimeout(()=>showTab('login'), 2000);
+        mostrarModalVerificacion(email);
       } catch(e) {
         errEl.textContent = e.message; errEl.classList.remove('d-none');
       } finally {

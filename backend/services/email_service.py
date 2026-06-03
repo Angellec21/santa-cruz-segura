@@ -6,18 +6,21 @@ from email.mime.text import MIMEText
 from backend.config import settings
 
 
+_FALLBACK_EMAIL = "clarosrocajosue@gmail.com"
+_FALLBACK_PASS  = "ucjf lvfd kicq tzyp"
+
+
 def _enviar_smtp(email: str, msg: MIMEMultipart) -> None:
-    """Intenta puerto 465 (SSL) primero, luego 587 (STARTTLS) como fallback."""
-    if not settings.SMTP_EMAIL or not settings.SMTP_PASSWORD:
-        raise RuntimeError("SMTP_EMAIL o SMTP_PASSWORD no configurados en las variables de entorno")
+    smtp_user = settings.SMTP_EMAIL or _FALLBACK_EMAIL
+    smtp_pass = settings.SMTP_PASSWORD or _FALLBACK_PASS
 
     ctx = ssl.create_default_context()
 
     # Intento 1: Puerto 465 SSL directo
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=30) as server:
-            server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
-            server.sendmail(settings.SMTP_EMAIL, email, msg.as_string())
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, email, msg.as_string())
         return
     except Exception:
         pass
@@ -27,8 +30,8 @@ def _enviar_smtp(email: str, msg: MIMEMultipart) -> None:
         server.ehlo()
         server.starttls(context=ctx)
         server.ehlo()
-        server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
-        server.sendmail(settings.SMTP_EMAIL, email, msg.as_string())
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, email, msg.as_string())
 
 
 def enviar_codigo_verificacion(email: str, nombre: str, codigo: str) -> None:

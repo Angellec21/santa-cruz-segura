@@ -1,22 +1,82 @@
 from __future__ import annotations
 import io
+import math
 import os
 import uuid
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 import cloudinary
 import cloudinary.uploader
 from sqlalchemy.orm import Session, selectinload
 from fastapi import HTTPException, UploadFile
-from backend.models.reporte import Reporte
+from backend.models.reporte import Reporte, EstadoReporte
 from backend.models.evidencia import Evidencia, TipoArchivo
 from backend.models.zona_caliente import ZonaCaliente
 from backend.schemas.reporte import ReporteCreate, ReporteEstadoUpdate
 from backend.config import settings
 from backend.utils import cache
 
+_STOP_WORDS = {
+    'el','la','los','las','un','una','de','del','en','y','a','que','se',
+    'con','por','al','es','fue','hay','no','su','sus','me','te','le','lo',
+    'mi','tu','si','ya','o','e','ni','más','muy','era','han','hay','este',
+    'esta','esto','eso','esa','aqui','ahi','alla','como','cuando','donde',
+    'quien','cual','para','pero','más','también','solo','todo','todos',
+}
+
+
+def _distancia_metros(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371000
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp = math.radians(lat2 - lat1)
+    dl = math.radians(lng2 - lng1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _palabras_significativas(texto: str) -> set[str]:
+    if not texto:
+        return set()
+    return {w for w in texto.lower().split() if len(w) > 2 and w not in _STOP_WORDS}
+
+
+def _buscar_duplicado(data: ReporteCreate, db: Session) -> Reporte | None:
+    """Detecta si existe un reporte similar: mismo lugar (<100m), últimos 30 min,
+    descripción con ≥2 palabras en común (excluyendo stop words)."""
+    hace_30min = datetime.now(timezone.utc) - timedelta(minutes=30)
+
+    candidatos = db.query(Reporte).filter(
+        Reporte.id_zona == data.id_zona,
+        Reporte.id_tipo == data.id_tipo,
+        Reporte.fecha_reporte >= hace_30min,
+        Reporte.estado != EstadoReporte.descartado,
+    ).all()
+
+    palabras_nuevo = _palabras_significativas(data.descripcion or "")
+
+    for r in candidatos:
+        dist = _distancia_metros(
+            float(data.latitud), float(data.longitud),
+            float(r.latitud), float(r.longitud),
+        )
+        if dist > 100:
+            continue
+
+        # Sin descripción: misma zona + mismo tipo + <50m = duplicado
+        if not data.descripcion or not r.descripcion:
+            if dist <= 50:
+                return r
+            continue
+
+        coincidencias = palabras_nuevo & _palabras_significativas(r.descripcion)
+        if len(coincidencias) >= 2:
+            return r
+
+    return None
+
 
 def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
-    from datetime import datetime, timedelta, timezone
+    # Rate limit: 1 reporte por usuario cada 5 minutos
     reciente = db.query(Reporte).filter(
         Reporte.id_usuario == id_usuario,
         Reporte.fecha_reporte >= datetime.now(timezone.utc) - timedelta(minutes=5),
@@ -25,6 +85,18 @@ def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
         raise HTTPException(
             status_code=429,
             detail="Solo puedes enviar un reporte cada 5 minutos. Intenta más tarde.",
+        )
+
+    # Deduplicación: detectar incidente ya reportado
+    duplicado = _buscar_duplicado(data, db)
+    if duplicado:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"DUPLICADO:{duplicado.id_reporte}|"
+                f"Este incidente ya fue reportado (#{duplicado.id_reporte}). "
+                f"Tu confirmación suma al reporte existente. ¡Gracias!"
+            ),
         )
 
     zona = db.query(ZonaCaliente).filter(ZonaCaliente.id_zona == data.id_zona).first()

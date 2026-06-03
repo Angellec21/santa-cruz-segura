@@ -286,8 +286,28 @@ document.getElementById('btn-enviar-reporte').addEventListener('click', async ()
     }, 2500);
 
   } catch (ex) {
-    errEl.textContent = ex.message;
-    errEl.classList.remove('d-none');
+    // 409 = duplicado detectado → tratar como confirmación, no como error
+    if (ex.message && ex.message.startsWith('DUPLICADO:')) {
+      const texto = ex.message.split('|').slice(1).join('|');
+      heatLayer.addLatLng([lat, lng, 0.5]);
+      msgEl.innerHTML = `<i class="bi bi-info-circle me-1"></i>${texto}`;
+      msgEl.classList.remove('d-none');
+      setTimeout(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalReporte')).hide();
+        document.getElementById('reporte-form').reset();
+        document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+        tipoSeleccionado = null;
+        if (marcador) { mapa.removeLayer(marcador); marcador = null; }
+        lat = null; lng = null;
+        document.getElementById('btn-abrir-reporte').disabled = true;
+        document.getElementById('pin-hint').style.display = '';
+        const info = document.getElementById('zona-detectada-info');
+        if (info) info.textContent = '';
+      }, 3000);
+    } else {
+      errEl.textContent = ex.message;
+      errEl.classList.remove('d-none');
+    }
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-send me-2"></i>Enviar reporte';

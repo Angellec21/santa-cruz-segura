@@ -7,17 +7,17 @@ services:
     autoDeploy: true
     envVars:
       - key: DB_HOST
-        sync: false
+        value: santacruz-santacruzsegura.l.aivencloud.com
       - key: DB_PORT
-        sync: false
+        value: "13306"
       - key: DB_NAME
-        sync: false
+        value: santa_cruz_segura
       - key: DB_USER
-        sync: false
+        value: avnadmin
       - key: DB_PASSWORD
         sync: false
       - key: SECRET_KEY
-        sync: false
+        value: santa_cruz_segura_clave_jwt_super_secreta_2026_produccion
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
@@ -30,3 +30,9 @@ services:
         value: "10"
       - key: CLOUDINARY_URL
         sync: false
+      - key: SMTP_EMAIL
+        value: clarosrocajosue@gmail.com
+      - key: SMTP_PASSWORD
+        value: "ucjf lvfd kicq tzyp"
+      - key: APP_URL
+        value: https://santa-cruz-segura.onrender.com

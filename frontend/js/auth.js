@@ -26,12 +26,21 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 function initSidebarLinks() {
   const user = getUser();
   if (!user) return;
-  // Gestionar reportes: directivo (2), autoridad (3), admin (4)
   const rol = Number(user.id_rol);
-  if (rol >= 2) {
-    document.getElementById('link-gestionar')?.classList.remove('d-none');
+
+  if (rol === 3) {
+    // Autoridad (policía): ocultar reportar y mis reportes, mostrar incidentes y mis casos
+    document.getElementById('link-reportar')?.classList.add('d-none');
+    document.getElementById('link-mis-reportes')?.classList.add('d-none');
+    document.getElementById('link-incidentes')?.classList.remove('d-none');
+    document.getElementById('link-mis-casos')?.classList.remove('d-none');
+  } else {
+    // Directivo, admin: gestionar reportes
+    if (rol >= 2) {
+      document.getElementById('link-gestionar')?.classList.remove('d-none');
+    }
   }
-  // Usuarios (admin): solo admin (4)
+
   if (rol === 4) {
     document.getElementById('link-admin')?.classList.remove('d-none');
   }

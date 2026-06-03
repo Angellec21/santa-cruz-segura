@@ -38,6 +38,7 @@ def heatmap_all(
         SELECT r.latitud, r.longitud, z.nivel_riesgo
         FROM reporte r
         JOIN zona_caliente z ON z.id_zona = r.id_zona
+        WHERE r.estado NOT IN ('resuelto', 'descartado')
     """)).mappings().all()
     result = [
         {"lat": float(r.latitud), "lng": float(r.longitud),

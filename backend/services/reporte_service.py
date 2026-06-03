@@ -121,6 +121,64 @@ def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
     return reporte
 
 
+def listar_incidentes(lat: float, lng: float, db: Session) -> list[tuple[Reporte, float]]:
+    """Incidentes pendientes (sin autoridad asignada) ordenados por distancia al usuario."""
+    reportes = db.query(Reporte).options(selectinload(Reporte.evidencias)).filter(
+        Reporte.estado == EstadoReporte.pendiente,
+        Reporte.id_autoridad == None,
+    ).all()
+    con_distancia = [
+        (r, _distancia_metros(lat, lng, float(r.latitud), float(r.longitud)))
+        for r in reportes
+    ]
+    con_distancia.sort(key=lambda x: x[1])
+    return con_distancia
+
+
+def asignar_caso(id_reporte: int, id_autoridad: int, db: Session) -> Reporte:
+    reporte = db.query(Reporte).filter(Reporte.id_reporte == id_reporte).first()
+    if not reporte:
+        raise HTTPException(status_code=404, detail="Reporte no encontrado")
+    if reporte.id_autoridad:
+        raise HTTPException(status_code=409, detail="Este incidente ya fue asignado a otra autoridad")
+    reporte.id_autoridad = id_autoridad
+    reporte.estado = EstadoReporte.verificado
+    db.commit()
+    db.refresh(reporte)
+    cache.invalidate_prefix("zonas:heatmap:")
+    return reporte
+
+
+def listar_mis_casos(id_autoridad: int, db: Session) -> dict:
+    activos = db.query(Reporte).options(selectinload(Reporte.evidencias)).filter(
+        Reporte.id_autoridad == id_autoridad,
+        Reporte.estado == EstadoReporte.verificado,
+    ).order_by(Reporte.fecha_reporte.desc()).all()
+
+    historial = db.query(Reporte).options(selectinload(Reporte.evidencias)).filter(
+        Reporte.id_autoridad == id_autoridad,
+        Reporte.estado == EstadoReporte.resuelto,
+    ).order_by(Reporte.fecha_reporte.desc()).all()
+
+    return {"activos": activos, "historial": historial}
+
+
+def resolver_caso(id_reporte: int, id_autoridad: int, db: Session) -> Reporte:
+    reporte = db.query(Reporte).filter(
+        Reporte.id_reporte == id_reporte,
+        Reporte.id_autoridad == id_autoridad,
+    ).first()
+    if not reporte:
+        raise HTTPException(status_code=404, detail="Caso no encontrado o no asignado a ti")
+    reporte.estado = EstadoReporte.resuelto
+    db.commit()
+    db.refresh(reporte)
+    # Quitar del mapa en tiempo real invalidando todos los cachés
+    cache.invalidate("dashboard:resumen", "dashboard:tendencia", "zonas:list")
+    cache.invalidate_prefix("zonas:heatmap:")
+    return reporte
+
+
 def listar_reportes(
     db: Session,
     id_zona: int | None = None,

@@ -2,10 +2,13 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from backend.models.usuario import Usuario
-from backend.schemas.reporte import ReporteCreate, ReporteResponse, ReporteEstadoUpdate, ReporteGestionResponse
+from backend.schemas.reporte import (
+    ReporteCreate, ReporteResponse, ReporteEstadoUpdate,
+    ReporteGestionResponse, IncidenteResponse,
+)
 from backend.utils.deps import ROL_AUTORIDAD
 from backend.services import reporte_service
-from backend.utils.deps import get_db, get_current_user, require_role, ROL_DIRECTIVO, ROL_ADMIN
+from backend.utils.deps import get_db, get_current_user, require_role, ROL_DIRECTIVO, ROL_ADMIN, ROL_VECINO
 
 router = APIRouter(prefix="/reportes", tags=["reportes"])
 
@@ -72,6 +75,63 @@ def cambiar_estado(
     _: Usuario = Depends(require_role([ROL_DIRECTIVO, ROL_ADMIN])),
 ):
     return reporte_service.actualizar_estado(id_reporte, data, db)
+
+
+@router.get("/incidentes")
+def listar_incidentes(
+    lat: float = Query(...),
+    lng: float = Query(...),
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role([ROL_AUTORIDAD, ROL_ADMIN])),
+):
+    items = reporte_service.listar_incidentes(lat, lng, db)
+    resultado = []
+    for r, dist in items:
+        d = IncidenteResponse.model_validate(r)
+        d.tipo_nombre = r.tipo_incidente.nombre if r.tipo_incidente else None
+        d.zona_nombre = r.zona.nombre if r.zona else None
+        d.reporter_nombre = "Anónimo" if r.anonimo else (r.usuario.nombre if r.usuario else None)
+        d.reporter_apellido = "" if r.anonimo else (r.usuario.apellido if r.usuario else None)
+        d.distancia_metros = round(dist)
+        resultado.append(d)
+    return resultado
+
+
+@router.post("/{id_reporte}/asignar", response_model=ReporteResponse)
+def asignar_caso(
+    id_reporte: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role([ROL_AUTORIDAD, ROL_ADMIN])),
+):
+    return reporte_service.asignar_caso(id_reporte, current_user.id_usuario, db)
+
+
+@router.get("/mis-casos")
+def mis_casos(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role([ROL_AUTORIDAD, ROL_ADMIN])),
+):
+    data = reporte_service.listar_mis_casos(current_user.id_usuario, db)
+    def _serializar(reportes):
+        resultado = []
+        for r in reportes:
+            d = ReporteGestionResponse.model_validate(r)
+            d.tipo_nombre = r.tipo_incidente.nombre if r.tipo_incidente else None
+            d.zona_nombre = r.zona.nombre if r.zona else None
+            d.reporter_nombre = "Anónimo" if r.anonimo else (r.usuario.nombre if r.usuario else None)
+            d.reporter_apellido = "" if r.anonimo else (r.usuario.apellido if r.usuario else None)
+            resultado.append(d)
+        return resultado
+    return {"activos": _serializar(data["activos"]), "historial": _serializar(data["historial"])}
+
+
+@router.put("/{id_reporte}/resolver", response_model=ReporteResponse)
+def resolver_caso(
+    id_reporte: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role([ROL_AUTORIDAD, ROL_ADMIN])),
+):
+    return reporte_service.resolver_caso(id_reporte, current_user.id_usuario, db)
 
 
 @router.post("/{id_reporte}/evidencia", status_code=201)

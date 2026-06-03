@@ -27,7 +27,10 @@ class Reporte(Base):
     fecha_incidente = Column(DateTime, nullable=False)
     fecha_reporte = Column(DateTime, server_default=func.now())
 
-    usuario = relationship("Usuario", back_populates="reportes")
+    id_autoridad = Column(Integer, ForeignKey("usuario.id_usuario"), nullable=True)
+
+    usuario = relationship("Usuario", foreign_keys=[id_usuario], back_populates="reportes")
+    autoridad = relationship("Usuario", foreign_keys=[id_autoridad])
     zona = relationship("ZonaCaliente", back_populates="reportes")
     tipo_incidente = relationship("TipoIncidente", back_populates="reportes")
     evidencias = relationship("Evidencia", back_populates="reporte")

@@ -22,7 +22,10 @@ def listar_zonas(db: Session) -> list[ZonaResponse]:
 def heatmap_zona(id_zona: int, db: Session) -> list[HeatmapPoint]:
     reportes = (
         db.query(Reporte.latitud, Reporte.longitud)
-        .filter(Reporte.id_zona == id_zona)
+        .filter(
+            Reporte.id_zona == id_zona,
+            Reporte.estado.notin_(["resuelto", "descartado"]),
+        )
         .all()
     )
     intensidad_map = {"bajo": 0.3, "medio": 0.5, "alto": 0.8, "critico": 1.0}

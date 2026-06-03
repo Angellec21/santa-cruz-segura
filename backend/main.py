@@ -76,6 +76,7 @@ async def startup():
                     ("email_verificado", "ALTER TABLE usuario ADD COLUMN email_verificado TINYINT NOT NULL DEFAULT 1"),
                     ("token_verificacion", "ALTER TABLE usuario ADD COLUMN token_verificacion VARCHAR(100) NULL"),
                     ("session_id", "ALTER TABLE usuario ADD COLUMN session_id VARCHAR(36) NULL"),
+                    ("id_autoridad", "ALTER TABLE reporte ADD COLUMN id_autoridad INT NULL REFERENCES usuario(id_usuario)"),
                 ]:
                     try:
                         db.execute(text(ddl))

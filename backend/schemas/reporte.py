@@ -46,9 +46,14 @@ class ReporteEstadoUpdate(BaseModel):
 
 
 class ReporteGestionResponse(ReporteResponse):
-    """Respuesta extendida para directivo/autoridad/admin con info del reportante."""
     tipo_nombre: Optional[str] = None
     zona_nombre: Optional[str] = None
     reporter_nombre: Optional[str] = None
     reporter_apellido: Optional[str] = None
+    id_autoridad: Optional[int] = None
+    autoridad_nombre: Optional[str] = None
     evidencias: list[EvidenciaResponse] = []
+
+
+class IncidenteResponse(ReporteGestionResponse):
+    distancia_metros: Optional[float] = None

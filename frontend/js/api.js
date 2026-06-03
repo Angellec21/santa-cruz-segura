@@ -8,8 +8,10 @@ async function api(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (res.status === 401) {
+    const body = await res.json().catch(() => ({}));
     localStorage.removeItem('scs_token');
     localStorage.removeItem('scs_user');
+    if (body.detail) sessionStorage.setItem('scs_401_msg', body.detail);
     window.location.href = '/index.html';
     return;
   }

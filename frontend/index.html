@@ -243,6 +243,15 @@
   <script>
     if (getToken()) window.location.href = 'dashboard.html';
 
+    // Mostrar mensaje si fue redirigido por sesión cerrada u otro 401
+    const msg401 = sessionStorage.getItem('scs_401_msg');
+    if (msg401) {
+      sessionStorage.removeItem('scs_401_msg');
+      const el = document.getElementById('login-err');
+      el.textContent = msg401;
+      el.classList.remove('d-none');
+    }
+
     function showTab(t) {
       document.getElementById('tab-btn-login').classList.toggle('active', t==='login');
       document.getElementById('tab-btn-reg').classList.toggle('active', t==='register');

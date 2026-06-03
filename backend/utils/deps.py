@@ -35,20 +35,29 @@ def get_current_user(
     try:
         payload = decode_token(token)
         user_id: int = payload.get("sub")
-        session_id: str = payload.get("sid")
+        token_sid: str | None = payload.get("sid")
         if user_id is None:
             raise credentials_error
     except JWTError:
         raise credentials_error
 
+    # Token sin sid = emitido antes del sistema de sesión única → forzar re-login
+    if not token_sid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesión expirada. Vuelve a iniciar sesión.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     user = db.query(Usuario).filter(Usuario.id_usuario == int(user_id)).first()
     if not user or not user.activo:
         raise credentials_error
-    # Sesión única: si el session_id no coincide, hay otro dispositivo activo
-    if session_id and user.session_id and user.session_id != session_id:
+
+    # Sesión única: token_sid debe coincidir con el session_id activo en BD
+    if user.session_id and user.session_id != token_sid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sesión cerrada. Iniciaste sesión en otro dispositivo.",
+            detail="Tu sesión fue cerrada porque ingresaste desde otro dispositivo.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user

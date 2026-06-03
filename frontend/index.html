@@ -239,41 +239,61 @@
   </div>
 
   <!-- Modal verificación de código -->
-  <div id="modal-verificar" onclick="if(event.target===this)this.style.display='none'"
-    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;
+  <div id="modal-verificar"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;
            align-items:center;justify-content:center;backdrop-filter:blur(6px)">
-    <div style="background:#081510;border:1px solid rgba(0,212,122,.25);border-radius:18px;
-                width:100%;max-width:400px;margin:1rem;box-shadow:0 0 60px rgba(0,0,0,.7)">
-      <div style="background:rgba(0,212,122,.08);border-bottom:1px solid rgba(0,212,122,.2);
+    <div style="background:#081510;border:1px solid rgba(0,212,122,.3);border-radius:18px;
+                width:100%;max-width:410px;margin:1rem;box-shadow:0 0 80px rgba(0,0,0,.8)">
+
+      <div style="background:rgba(0,212,122,.09);border-bottom:1px solid rgba(0,212,122,.2);
                   padding:1rem 1.4rem;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:.6rem">
-        <i class="bi bi-envelope-check" style="color:#00d47a;font-size:1.1rem"></i>
-        <span style="color:#00d47a;font-weight:700;font-size:.95rem">Verifica tu correo</span>
+        <i class="bi bi-envelope-check" style="color:#00d47a;font-size:1.2rem"></i>
+        <span style="color:#00d47a;font-weight:700;font-size:.95rem">Verifica tu correo electrónico</span>
       </div>
-      <div style="padding:1.5rem 1.4rem">
-        <p style="color:#94a3b8;font-size:.85rem;margin-bottom:1rem">
-          Enviamos un código de 6 dígitos a<br>
-          <b id="verif-email-label" style="color:#f1f5f9"></b>
+
+      <div style="padding:1.6rem 1.5rem">
+        <p style="color:#94a3b8;font-size:.85rem;margin:0 0 1.2rem;line-height:1.6">
+          Enviamos un código de <b style="color:#f1f5f9">6 dígitos</b> a:<br>
+          <b id="verif-email-label" style="color:#00d47a"></b>
         </p>
-        <div id="verif-err" style="display:none;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);
-             color:#fca5a5;border-radius:8px;padding:.5rem .75rem;font-size:.82rem;margin-bottom:.75rem" class="d-none"></div>
-        <div id="verif-ok"  style="display:none;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);
-             color:#6ee7b7;border-radius:8px;padding:.5rem .75rem;font-size:.82rem;margin-bottom:.75rem" class="d-none"></div>
-        <input id="verif-codigo" type="text" inputmode="numeric" maxlength="6" placeholder="_ _ _ _ _ _"
-          style="width:100%;background:rgba(255,255,255,.05);border:2px solid rgba(0,212,122,.3);border-radius:12px;
-                 padding:.9rem;font-size:1.6rem;font-weight:800;letter-spacing:.5rem;text-align:center;
-                 color:#00d47a;font-family:Inter,monospace;box-sizing:border-box;outline:none"
-          oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)"/>
+
+        <div id="verif-err"
+          style="display:none;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.25);
+                 color:#fca5a5;border-radius:9px;padding:.6rem .85rem;font-size:.83rem;margin-bottom:.9rem"></div>
+
+        <div id="verif-ok"
+          style="display:none;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);
+                 color:#6ee7b7;border-radius:9px;padding:.6rem .85rem;font-size:.83rem;margin-bottom:.9rem"></div>
+
+        <input id="verif-codigo" type="text" inputmode="numeric" maxlength="6"
+          placeholder="000000"
+          style="width:100%;background:rgba(255,255,255,.05);border:2px solid rgba(0,212,122,.35);
+                 border-radius:12px;padding:1rem;font-size:2rem;font-weight:900;letter-spacing:.6rem;
+                 text-align:center;color:#00d47a;font-family:monospace;box-sizing:border-box;
+                 outline:none;transition:border-color .2s"
+          oninput="this.value=this.value.replace(/\D/g,'').slice(0,6);if(this.value.length===6)enviarCodigo()"
+          onfocus="this.style.borderColor='rgba(0,212,122,.7)'"
+          onblur="this.style.borderColor='rgba(0,212,122,.35)'"
+        />
+
+        <p style="color:#475569;font-size:.75rem;text-align:center;margin:.5rem 0 1rem">
+          Revisa también tu carpeta de spam
+        </p>
+
         <button id="btn-verif" onclick="enviarCodigo()"
-          style="width:100%;margin-top:.9rem;padding:.75rem;border:none;border-radius:10px;cursor:pointer;
-                 font-size:.9rem;font-weight:700;font-family:Inter,sans-serif;
-                 background:linear-gradient(135deg,rgba(0,212,122,.9),rgba(0,212,122,.7));color:#060e0a">
-          Verificar
+          style="width:100%;padding:.78rem;border:none;border-radius:10px;cursor:pointer;
+                 font-size:.92rem;font-weight:700;font-family:Inter,sans-serif;
+                 background:linear-gradient(135deg,#00d47a,rgba(0,212,122,.75));color:#060e0a;
+                 box-shadow:0 0 20px rgba(0,212,122,.25);transition:opacity .15s">
+          <i class="bi bi-check-circle me-1"></i> Verificar código
         </button>
+
         <button id="btn-reenviar" onclick="reenviarCodigo()"
-          style="width:100%;margin-top:.5rem;padding:.5rem;border:1px solid rgba(255,255,255,.08);
+          style="width:100%;margin-top:.55rem;padding:.5rem;border:1px solid rgba(255,255,255,.08);
                  border-radius:10px;cursor:pointer;font-size:.8rem;font-family:Inter,sans-serif;
-                 background:none;color:#64748b">
-          Reenviar código
+                 background:none;color:#64748b;transition:color .2s"
+          onmouseover="this.style.color='#00d47a'" onmouseout="this.style.color='#64748b'">
+          <i class="bi bi-arrow-clockwise me-1"></i> Reenviar código
         </button>
       </div>
     </div>
@@ -324,56 +344,90 @@
     // ── Modal verificación de código ──────────────────────────────────────────
     let _emailPendiente = '';
 
+    function verifShow(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+    function verifHide(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
     function mostrarModalVerificacion(email) {
       _emailPendiente = email;
       document.getElementById('verif-email-label').textContent = email;
       document.getElementById('verif-codigo').value = '';
-      document.getElementById('verif-err').classList.add('d-none');
-      document.getElementById('verif-ok').classList.add('d-none');
+      verifHide('verif-err');
+      verifHide('verif-ok');
       document.getElementById('modal-verificar').style.display = 'flex';
-      setTimeout(() => document.getElementById('verif-codigo').focus(), 80);
+      setTimeout(() => document.getElementById('verif-codigo').focus(), 100);
     }
 
     async function enviarCodigo() {
-      const errEl = document.getElementById('verif-err');
-      const okEl  = document.getElementById('verif-ok');
-      const btn   = document.getElementById('btn-verif');
+      const btn    = document.getElementById('btn-verif');
       const codigo = document.getElementById('verif-codigo').value.trim();
-      errEl.classList.add('d-none'); okEl.classList.add('d-none');
-      if (codigo.length !== 6 || isNaN(codigo)) {
-        errEl.textContent = 'El código debe ser de 6 dígitos.';
-        errEl.classList.remove('d-none'); return;
+      verifHide('verif-err');
+      verifHide('verif-ok');
+
+      if (codigo.length !== 6 || !/^\d{6}$/.test(codigo)) {
+        verifShow('verif-err', 'Ingresa los 6 dígitos del código.');
+        return;
       }
-      btn.disabled = true; btn.textContent = 'Verificando…';
+
+      btn.disabled = true;
+      btn.innerHTML = '<span style="opacity:.7">Verificando…</span>';
+
       try {
-        await fetch('/auth/verificar-codigo', {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
+        const res = await fetch('/auth/verificar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: _emailPendiente, codigo }),
-        }).then(r => { if (!r.ok) return r.json().then(d => { throw new Error(d.detail); }); return r.json(); });
-        okEl.textContent = '¡Correo verificado! Ya puedes iniciar sesión.';
-        okEl.classList.remove('d-none');
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Código incorrecto');
+
+        verifShow('verif-ok', '✓ Correo verificado. Redirigiendo al inicio de sesión…');
+        btn.style.display = 'none';
+
         setTimeout(() => {
           document.getElementById('modal-verificar').style.display = 'none';
+          btn.style.display = '';
+          btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Verificar código';
+          // Pre-llenar email en el login y cambiar pestaña
           document.getElementById('login-email').value = _emailPendiente;
           showTab('login');
+          document.getElementById('login-password').focus();
         }, 2000);
+
       } catch(e) {
-        errEl.textContent = e.message || 'Código incorrecto.';
-        errEl.classList.remove('d-none');
+        verifShow('verif-err', e.message || 'Código incorrecto. Inténtalo de nuevo.');
+        document.getElementById('verif-codigo').value = '';
+        document.getElementById('verif-codigo').focus();
       } finally {
-        btn.disabled = false; btn.textContent = 'Verificar';
+        if (!document.getElementById('verif-ok').style.display || document.getElementById('verif-ok').style.display === 'none') {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Verificar código';
+        }
       }
     }
 
     async function reenviarCodigo() {
       const btn = document.getElementById('btn-reenviar');
-      btn.disabled = true; btn.textContent = 'Enviando…';
-      await fetch('/auth/reenviar-codigo', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: _emailPendiente }),
-      }).catch(() => {});
-      btn.textContent = '¡Reenviado!';
-      setTimeout(() => { btn.disabled = false; btn.textContent = 'Reenviar código'; }, 5000);
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Enviando…';
+      try {
+        await fetch('/auth/reenviar-codigo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: _emailPendiente }),
+        });
+        btn.innerHTML = '<i class="bi bi-check me-1"></i> ¡Código reenviado!';
+        verifHide('verif-err');
+      } catch {}
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Reenviar código';
+      }, 8000);
     }
 
     document.addEventListener('keydown', e => {

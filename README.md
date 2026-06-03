@@ -267,27 +267,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Configurar variables de entorno
-
-Crea un archivo `.env` en la raíz del proyecto:
-
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=santa_cruz_segura
-DB_USER=root
-DB_PASSWORD=tu_contraseña
-
-SECRET_KEY=genera_una_clave_muy_segura_al_menos_64_caracteres
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=480
-
-APP_ENV=development
-UPLOAD_DIR=uploads/
-MAX_UPLOAD_MB=10
-```
-
-### 5. Crear la base de datos
+### 4. Crear la base de datos
 
 Ejecuta el script SQL completo en MySQL Workbench.
 

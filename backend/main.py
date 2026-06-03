@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 from collections import defaultdict
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -26,7 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rate limiting en memoria: max 15 peticiones/minuto por IP en rutas de auth
 _rl: dict[str, list[float]] = defaultdict(list)
 _RL_PATHS = {"/auth/login", "/auth/register"}
 _RL_LIMIT = 15
@@ -60,21 +59,34 @@ async def db_error_handler(request: Request, exc: Exception):
 
 @app.get("/health", tags=["infra"])
 async def health():
-    return {"status": "ok", "ws_connections": manager.count}
+    return {"status": "ok"}
 
 
 @app.on_event("startup")
-async def warmup_cache():
-    async def _warm():
-        await asyncio.sleep(4)
+async def startup():
+    async def _migrate_and_warm():
+        await asyncio.sleep(3)
         try:
             from backend.database import SessionLocal
-            from backend.services.zona_service import listar_zonas
-            from backend.services.alerta_service import listar_alertas
-            from backend.utils import cache
             from sqlalchemy import text
             db = SessionLocal()
             try:
+                # Migración automática: agregar columnas nuevas si no existen
+                for col, ddl in [
+                    ("email_verificado", "ALTER TABLE usuario ADD COLUMN email_verificado TINYINT NOT NULL DEFAULT 1"),
+                    ("token_verificacion", "ALTER TABLE usuario ADD COLUMN token_verificacion VARCHAR(100) NULL"),
+                    ("session_id", "ALTER TABLE usuario ADD COLUMN session_id VARCHAR(36) NULL"),
+                ]:
+                    try:
+                        db.execute(text(ddl))
+                        db.commit()
+                    except Exception:
+                        db.rollback()  # Columna ya existe, ignorar
+
+                # Warmup de caché
+                from backend.services.zona_service import listar_zonas
+                from backend.services.alerta_service import listar_alertas
+                from backend.utils import cache
                 zonas = listar_zonas(db)
                 cache.set("zonas:list", zonas)
                 intensidad_map = {"bajo": 0.3, "medio": 0.5, "alto": 0.8, "critico": 1.0}
@@ -92,8 +104,7 @@ async def warmup_cache():
                 db.close()
         except Exception:
             pass
-    asyncio.create_task(_warm())
-
+    asyncio.create_task(_migrate_and_warm())
 
 
 app.include_router(auth.router)
@@ -103,22 +114,6 @@ app.include_router(zonas.router)
 app.include_router(alertas.router)
 app.include_router(dashboard.router)
 app.include_router(ia.router)
-
-_WS_PING_INTERVAL = 25.0
-
-
-@app.websocket("/ws/mapa")
-async def websocket_mapa(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            try:
-                await asyncio.wait_for(websocket.receive_text(), timeout=_WS_PING_INTERVAL)
-            except asyncio.TimeoutError:
-                await websocket.send_text('{"tipo":"ping"}')
-    except (WebSocketDisconnect, Exception):
-        manager.disconnect(websocket)
-
 
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

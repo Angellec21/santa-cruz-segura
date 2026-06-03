@@ -6,29 +6,17 @@ from backend.schemas.reporte import ReporteCreate, ReporteResponse, ReporteEstad
 from backend.utils.deps import ROL_AUTORIDAD
 from backend.services import reporte_service
 from backend.utils.deps import get_db, get_current_user, require_role, ROL_DIRECTIVO, ROL_ADMIN
-from backend.websocket.manager import manager
 
 router = APIRouter(prefix="/reportes", tags=["reportes"])
 
 
 @router.post("", response_model=ReporteResponse, status_code=201)
-async def crear(
+def crear(
     data: ReporteCreate,
     db: Session = Depends(get_db),
     current_user: Usuario = Depends(get_current_user),
 ):
-    reporte = reporte_service.crear_reporte(data, current_user.id_usuario, db)
-    zona = reporte.zona
-    await manager.broadcast({
-        "tipo": "nuevo_reporte",
-        "id_reporte": reporte.id_reporte,
-        "latitud": float(reporte.latitud),
-        "longitud": float(reporte.longitud),
-        "tipo_incidente": reporte.tipo_incidente.nombre if reporte.tipo_incidente else "",
-        "nivel_zona": zona.nivel_riesgo.value if zona else "bajo",
-        "id_zona": reporte.id_zona,
-    })
-    return reporte
+    return reporte_service.crear_reporte(data, current_user.id_usuario, db)
 
 
 @router.get("/mis", response_model=list[ReporteResponse])

@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 import bcrypt
 from jose import jwt
@@ -21,3 +22,11 @@ def create_access_token(data: dict) -> str:
 
 def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+
+def generate_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def generate_session_id() -> str:
+    return secrets.token_hex(16)

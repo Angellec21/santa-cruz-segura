@@ -16,6 +16,17 @@ from backend.utils import cache
 
 
 def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
+    from datetime import datetime, timedelta, timezone
+    reciente = db.query(Reporte).filter(
+        Reporte.id_usuario == id_usuario,
+        Reporte.fecha_reporte >= datetime.now(timezone.utc) - timedelta(minutes=5),
+    ).first()
+    if reciente:
+        raise HTTPException(
+            status_code=429,
+            detail="Solo puedes enviar un reporte cada 5 minutos. Intenta más tarde.",
+        )
+
     zona = db.query(ZonaCaliente).filter(ZonaCaliente.id_zona == data.id_zona).first()
     if not zona:
         raise HTTPException(status_code=404, detail="Zona no encontrada")

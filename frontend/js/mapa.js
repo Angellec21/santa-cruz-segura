@@ -57,9 +57,8 @@ function dibujarZonaCalor(map, lat, lng, radio, nivel, nombre, reportes30d) {
 
 let mapaLeaflet = null;
 let heatLayer   = null;
-let ws          = null;
-let zonasMap    = {};   // id_zona → objeto zona (para cruzar nivel_riesgo al recibir WS)
-let tiposMap    = {};   // id_tipo → nombre (para mostrar en popup de reportes históricos)
+let zonasMap    = {};
+let tiposMap    = {};
 
 function initMapa(elementId = 'mapa') {
   mapaLeaflet = L.map(elementId, { zoomControl: false }).setView(SANTA_CRUZ_CENTER, 13);
@@ -68,8 +67,9 @@ function initMapa(elementId = 'mapa') {
     attribution: '© OpenStreetMap © CARTO', maxZoom: 19,
   }).addTo(mapaLeaflet);
   heatLayer = L.heatLayer([], { radius: 35, blur: 25, maxZoom: 17, gradient: { 0.3:'#7c3aed', 0.6:'#00d47a', 0.8:'#f59e0b', 1.0:'#ef4444' } }).addTo(mapaLeaflet);
-  conectarWS();
   cargarMapa();
+  // Polling cada 30 segundos para nuevos reportes
+  setInterval(cargarReportesExistentes, 30000);
 }
 
 // Carga zonas, heatmap Y reportes existentes como marcadores
@@ -142,70 +142,6 @@ async function cargarReportesExistentes() {
   } catch (e) { console.error('Error cargando reportes:', e); }
 }
 
-function conectarWS() {
-  const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(`${wsProto}//${window.location.host}/ws/mapa`);
-  const dot = '<i class="bi bi-circle-fill" style="font-size:.38rem"></i>';
-
-  function setWsBadge(on) {
-    const text = on ? 'En vivo' : 'Sin conexión';
-    const cls  = on ? 'ws-pill on' : 'ws-pill off';
-    ['ws-badge-map','ws-badge','ws-status'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.className = cls;
-      el.innerHTML = `${dot} ${text}`;
-    });
-  }
-
-  ws.onopen    = () => setWsBadge(true);
-  ws.onclose   = () => { setWsBadge(false); setTimeout(conectarWS, 5000); };
-  ws.onmessage = e => {
-    const evento = JSON.parse(e.data);
-    if (evento.tipo === 'nuevo_reporte') agregarMarcadorNuevo(evento);
-  };
-}
-
-// Marcador para reportes nuevos llegados por WebSocket (más grande, animado)
-function agregarMarcadorNuevo(evento) {
-  const color = COLOR_RIESGO[evento.nivel_zona] || '#00d47a';
-  const icon = L.divIcon({
-    className: '',
-    html: `<div style="position:relative;width:20px;height:20px">
-      <div style="
-        position:absolute;inset:0;border-radius:50%;
-        background:${color};opacity:.25;
-        animation:ws-ring 1.5s ease-out infinite;
-      "></div>
-      <div style="
-        position:absolute;inset:4px;border-radius:50%;
-        background:${color};border:2px solid rgba(255,255,255,.9);
-        box-shadow:0 0 12px ${color};
-      "></div>
-    </div>
-    <style>
-      @keyframes ws-ring{0%{transform:scale(1);opacity:.4}100%{transform:scale(2.5);opacity:0}}
-    </style>`,
-    iconAnchor: [10, 10],
-  });
-
-  const hora = new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
-
-  L.marker([evento.latitud, evento.longitud], { icon })
-    .bindPopup(
-      `<b>${evento.tipo_incidente}</b><br>` +
-      `<span style="color:#fbbf24">● Nuevo reporte</span><br>` +
-      `<small style="color:#94a3b8">Riesgo <b style="color:${color}">${evento.nivel_zona}</b> · ${hora}</small>`
-    )
-    .addTo(mapaLeaflet)
-    .openPopup();
-
-  heatLayer.addLatLng([evento.latitud, evento.longitud, 0.9]);
-
-  // Actualizar el círculo de zona si está en el mapa
-  const zona = zonasMap[evento.id_zona];
-  if (zona) zona.nivel_riesgo = evento.nivel_zona;
-}
 
 window.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('mapa')) initMapa('mapa');

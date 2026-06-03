@@ -295,3 +295,47 @@ document.getElementById('btn-enviar-reporte').addEventListener('click', async ()
 });
 
 cargarSelects();
+
+// GPS automático: detecta ubicación actual y abre el modal listo para reportar
+function usarUbicacionActual() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+
+    document.getElementById('latitud-display').value  = lat.toFixed(6);
+    document.getElementById('longitud-display').value = lng.toFixed(6);
+
+    if (marcador) mapa.removeLayer(marcador);
+    marcador = L.marker([lat, lng])
+      .addTo(mapa)
+      .bindPopup('<b>Tu ubicación actual</b>')
+      .openPopup();
+    mapa.setView([lat, lng], 15);
+
+    const resultado = detectarZona(lat, lng);
+    if (resultado) {
+      document.getElementById('zona').value = resultado.zona.id_zona;
+      mostrarIndicadorZona(resultado);
+    }
+
+    const btn = document.getElementById('btn-abrir-reporte');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Reportar aquí';
+    document.getElementById('pin-hint').style.display = 'none';
+
+    new bootstrap.Modal(document.getElementById('modalReporte')).show();
+  }, () => {}, { enableHighAccuracy: true, timeout: 8000 });
+}
+
+// Botón GPS en el header de la página
+(function agregarBotonGPS() {
+  const header = document.querySelector('.page-header');
+  if (!header) return;
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-scs';
+  btn.style.cssText = 'margin-left:.5rem;';
+  btn.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i>Usar mi ubicación';
+  btn.onclick = usarUbicacionActual;
+  header.appendChild(btn);
+})();

@@ -18,6 +18,9 @@ class Usuario(Base):
     latitud = Column(DECIMAL(10, 8))
     longitud = Column(DECIMAL(11, 8))
     activo = Column(Boolean, default=True)
+    email_verificado = Column(Boolean, default=False, nullable=False, server_default="0")
+    token_verificacion = Column(String(100), nullable=True)
+    session_id = Column(String(36), nullable=True)
     fecha_registro = Column(DateTime, server_default=func.now())
 
     junta = relationship("JuntaVecinal", back_populates="usuarios")

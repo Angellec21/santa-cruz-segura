@@ -45,8 +45,11 @@ CREATE TABLE IF NOT EXISTS usuario (
   password_hash  VARCHAR(255) NOT NULL,
   latitud        DECIMAL(10,8),
   longitud       DECIMAL(11,8),
-  activo         BOOLEAN DEFAULT TRUE,
-  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  activo              BOOLEAN      DEFAULT TRUE,
+  email_verificado    TINYINT      NOT NULL DEFAULT 0,
+  token_verificacion  VARCHAR(100) NULL,
+  session_id          VARCHAR(36)  NULL,
+  fecha_registro      DATETIME     DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_usuario_junta FOREIGN KEY (id_junta) REFERENCES junta_vecinal(id_junta),
   CONSTRAINT fk_usuario_rol   FOREIGN KEY (id_rol)   REFERENCES rol(id_rol)
 ) ENGINE=InnoDB;

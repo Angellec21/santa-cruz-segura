@@ -62,8 +62,10 @@ def register(data: RegisterRequest, db: Session) -> Usuario:
     try:
         from backend.services.email_service import enviar_codigo_verificacion
         enviar_codigo_verificacion(user.email, user.nombre, codigo)
-    except Exception:
-        pass
+    except Exception as e:
+        # No bloquear el registro si el correo falla, pero sí registrar el error
+        import sys
+        print(f"[EMAIL ERROR] {type(e).__name__}: {e}", file=sys.stderr)
 
     return user
 

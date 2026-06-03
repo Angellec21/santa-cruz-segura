@@ -63,6 +63,39 @@ async def health():
     return {"status": "ok", "ws_connections": manager.count}
 
 
+@app.on_event("startup")
+async def warmup_cache():
+    async def _warm():
+        await asyncio.sleep(4)
+        try:
+            from backend.database import SessionLocal
+            from backend.services.zona_service import listar_zonas
+            from backend.services.alerta_service import listar_alertas
+            from backend.utils import cache
+            from sqlalchemy import text
+            db = SessionLocal()
+            try:
+                zonas = listar_zonas(db)
+                cache.set("zonas:list", zonas)
+                intensidad_map = {"bajo": 0.3, "medio": 0.5, "alto": 0.8, "critico": 1.0}
+                rows = db.execute(text("""
+                    SELECT r.latitud, r.longitud, z.nivel_riesgo
+                    FROM reporte r JOIN zona_caliente z ON z.id_zona = r.id_zona
+                """)).mappings().all()
+                cache.set("zonas:heatmap:all", [
+                    {"lat": float(r.latitud), "lng": float(r.longitud),
+                     "intensity": intensidad_map.get(r.nivel_riesgo, 0.3)}
+                    for r in rows
+                ])
+                cache.set("alertas:list", listar_alertas(db))
+            finally:
+                db.close()
+        except Exception:
+            pass
+    asyncio.create_task(_warm())
+
+
+
 app.include_router(auth.router)
 app.include_router(usuarios.router)
 app.include_router(reportes.router)

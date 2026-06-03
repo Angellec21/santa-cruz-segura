@@ -75,14 +75,15 @@ function initMapa(elementId = 'mapa') {
 // Carga zonas, heatmap Y reportes existentes como marcadores
 async function cargarMapa() {
   try {
-    // 1. Tipos y zonas en paralelo
-    const [tipos, zonas] = await Promise.all([
+    // 1. Tipos, zonas, heatmap global y reportes — todo en paralelo (3 requests en vez de 12)
+    const [tipos, zonas, heatPuntos] = await Promise.all([
       fetch('/auth/tipos').then(r => r.json()),
       api('/zonas'),
+      api('/zonas/heatmap/all'),
     ]);
     tipos.forEach(t => { tiposMap[t.id_tipo] = t.nombre; });
 
-    // 2. Dibujar zonas inmediatamente (sin esperar el heatmap)
+    // 2. Dibujar zonas y cargar reportes en paralelo
     zonas.forEach(zona => {
       zonasMap[zona.id_zona] = zona;
       dibujarZonaCalor(
@@ -92,14 +93,11 @@ async function cargarMapa() {
       );
     });
 
-    // 3. Heatmap de todas las zonas + reportes en paralelo
-    const [heatResults] = await Promise.all([
-      Promise.all(zonas.map(z => api(`/zonas/${z.id_zona}/heatmap`))),
-      cargarReportesExistentes(),
-    ]);
-
-    const puntos = heatResults.flatMap(pts => pts.map(p => [p.lat, p.lng, p.intensity]));
+    // 3. Heatmap con datos ya recibidos + reportes en paralelo
+    const puntos = heatPuntos.map(p => [p.lat, p.lng, p.intensity]);
     if (puntos.length) heatLayer.setLatLngs(puntos);
+
+    await cargarReportesExistentes();
 
   } catch (e) { console.error('Error cargando mapa:', e); }
 }

@@ -353,13 +353,22 @@
       document.getElementById(id).style.display = 'none';
     }
 
-    function mostrarModalVerificacion(email) {
+    function mostrarModalVerificacion(email, emailEnviado = true, emailError = null) {
       _emailPendiente = email;
       document.getElementById('verif-email-label').textContent = email;
       document.getElementById('verif-codigo').value = '';
       verifHide('verif-err');
       verifHide('verif-ok');
       document.getElementById('modal-verificar').style.display = 'flex';
+
+      if (!emailEnviado) {
+        verifShow('verif-err',
+          'No pudimos enviar el código automáticamente. ' +
+          'Haz clic en "Reenviar código" para intentarlo de nuevo.'
+        );
+        console.error('[Email error]', emailError);
+      }
+
       setTimeout(() => document.getElementById('verif-codigo').focus(), 100);
     }
 
@@ -468,7 +477,8 @@
             : (d.detail || 'Error al registrar');
           throw new Error(msg);
         }
-        mostrarModalVerificacion(email);
+        const data = await resp.json();
+        mostrarModalVerificacion(email, data.email_enviado, data.email_error);
       } catch(e) {
         errEl.textContent = e.message; errEl.classList.remove('d-none');
       } finally {

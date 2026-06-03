@@ -27,9 +27,18 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     return TokenResponse(access_token=token)
 
 
-@router.post("/register", response_model=UsuarioResponse, status_code=201)
+@router.post("/register", status_code=201)
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
-    return auth_service.register(data, db)
+    user, email_enviado, email_error = auth_service.register(data, db)
+    return {
+        "id_usuario": user.id_usuario,
+        "nombre": user.nombre,
+        "apellido": user.apellido,
+        "email": user.email,
+        "id_rol": user.id_rol,
+        "email_enviado": email_enviado,
+        "email_error": email_error,
+    }
 
 
 @router.get("/verificar/{token}", response_class=HTMLResponse)
@@ -67,7 +76,9 @@ def verificar_codigo(data: VerificarCodigoRequest, db: Session = Depends(get_db)
 
 @router.post("/reenviar-codigo")
 def reenviar_codigo(data: ReenviarCodigoRequest, db: Session = Depends(get_db)):
-    auth_service.reenviar_codigo(data.email, db)
+    ok, error = auth_service.reenviar_codigo(data.email, db)
+    if not ok:
+        raise HTTPException(status_code=400, detail=error or "No se pudo reenviar el código")
     return {"message": "Código reenviado. Revisa tu bandeja de entrada."}
 
 

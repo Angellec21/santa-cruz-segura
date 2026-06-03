@@ -38,7 +38,7 @@ def login(email: str, password: str, db: Session) -> str:
     return create_access_token({"sub": str(user.id_usuario), "sid": session_id})
 
 
-def register(data: RegisterRequest, db: Session) -> Usuario:
+def register(data: RegisterRequest, db: Session) -> tuple:
     existing = db.query(Usuario).filter(Usuario.email == data.email).first()
     if existing:
         raise HTTPException(status_code=409, detail="El email ya está registrado")
@@ -59,13 +59,18 @@ def register(data: RegisterRequest, db: Session) -> Usuario:
     db.commit()
     db.refresh(user)
 
+    email_enviado = False
+    email_error = None
     try:
         from backend.services.email_service import enviar_codigo_verificacion
         enviar_codigo_verificacion(user.email, user.nombre, codigo)
+        email_enviado = True
     except Exception as e:
-        # No bloquear el registro si el correo falla, pero sí registrar el error
         import sys
-        print(f"[EMAIL ERROR] {type(e).__name__}: {e}", file=sys.stderr)
+        email_error = f"{type(e).__name__}: {e}"
+        print(f"[EMAIL ERROR] {email_error}", file=sys.stderr)
+
+    return user, email_enviado, email_error
 
     return user
 
@@ -80,19 +85,22 @@ def verificar_codigo(email: str, codigo: str, db: Session) -> bool:
     return True
 
 
-def reenviar_codigo(email: str, db: Session) -> bool:
+def reenviar_codigo(email: str, db: Session) -> tuple:
     user = db.query(Usuario).filter(Usuario.email == email).first()
     if not user or user.email_verificado:
-        return False
+        return False, "Usuario no encontrado o ya verificado"
     codigo = _generar_codigo()
     user.token_verificacion = codigo
     db.commit()
     try:
         from backend.services.email_service import enviar_codigo_verificacion
         enviar_codigo_verificacion(user.email, user.nombre, codigo)
-    except Exception:
-        pass
-    return True
+        return True, None
+    except Exception as e:
+        import sys
+        error = f"{type(e).__name__}: {e}"
+        print(f"[EMAIL ERROR reenviar] {error}", file=sys.stderr)
+        return False, error
 
 
 def verificar_email(token: str, db: Session) -> bool:

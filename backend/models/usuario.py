@@ -25,6 +25,6 @@ class Usuario(Base):
 
     junta = relationship("JuntaVecinal", back_populates="usuarios")
     rol = relationship("Rol", back_populates="usuarios")
-    reportes = relationship("Reporte", back_populates="usuario")
+    reportes = relationship("Reporte", foreign_keys="Reporte.id_usuario", back_populates="usuario")
     alertas_creadas = relationship("Alerta", back_populates="creador")
     notificaciones = relationship("UsuarioNotificacion", back_populates="usuario")

@@ -2,6 +2,7 @@ from __future__ import annotations
 import io
 import os
 import uuid
+from urllib.parse import urlparse
 import cloudinary
 import cloudinary.uploader
 from sqlalchemy.orm import Session, selectinload
@@ -93,7 +94,8 @@ async def guardar_evidencia(id_reporte: int, archivo: UploadFile, db: Session) -
     tipo = tipo_map.get(ext, TipoArchivo.imagen)
 
     if settings.CLOUDINARY_URL:
-        cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+        p = urlparse(settings.CLOUDINARY_URL)
+        cloudinary.config(cloud_name=p.hostname, api_key=p.username, api_secret=p.password)
         resource = "video" if tipo == TipoArchivo.video else "auto"
         result = cloudinary.uploader.upload(
             io.BytesIO(contenido),

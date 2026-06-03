@@ -119,3 +119,4 @@ app.include_router(ia.router)
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+# deploy 1780496456

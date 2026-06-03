@@ -187,11 +187,12 @@ async function cargarPredicciones() {
 
     const puedePredir = user && [2, 3, 4].includes(user.id_rol);
 
-    // Auto-predecir zonas sin predicción (sin bloquear el render)
+    // Auto-predecir zonas sin predicción — todas en paralelo, un solo re-render
     const sinPred = zonas.filter(z => !predMap[z.id_zona]);
     if (sinPred.length && puedePredir) {
-      sinPred.forEach(z => api(`/ia/predecir/${z.id_zona}`, { method:'POST' })
-        .then(() => cargarPredicciones()).catch(() => {}));
+      Promise.all(sinPred.map(z =>
+        api(`/ia/predecir/${z.id_zona}`, { method: 'POST' }).catch(() => {})
+      )).then(() => cargarPredicciones());
     }
 
     container.innerHTML = zonas.map(z => {

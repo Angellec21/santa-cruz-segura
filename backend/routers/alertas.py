@@ -5,6 +5,7 @@ from backend.models.usuario import Usuario
 from backend.schemas.alerta import AlertaCreate, AlertaResponse
 from backend.services import alerta_service
 from backend.utils.deps import get_db, get_current_user, require_role, ROL_DIRECTIVO, ROL_ADMIN
+from backend.utils import cache
 
 router = APIRouter(prefix="/alertas", tags=["alertas"])
 
@@ -14,7 +15,12 @@ def listar(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    return alerta_service.listar_alertas(db)
+    hit, val = cache.get("alertas:list", ttl=20)
+    if hit:
+        return val
+    result = alerta_service.listar_alertas(db)
+    cache.set("alertas:list", result)
+    return result
 
 
 @router.post("", response_model=AlertaResponse, status_code=201)

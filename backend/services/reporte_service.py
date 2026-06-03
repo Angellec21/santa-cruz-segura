@@ -11,6 +11,7 @@ from backend.models.evidencia import Evidencia, TipoArchivo
 from backend.models.zona_caliente import ZonaCaliente
 from backend.schemas.reporte import ReporteCreate, ReporteEstadoUpdate
 from backend.config import settings
+from backend.utils import cache
 
 
 def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
@@ -31,6 +32,8 @@ def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
     db.add(reporte)
     db.commit()
     db.refresh(reporte)
+    cache.invalidate("dashboard:resumen", "dashboard:tendencia", "dashboard:tipos", "zonas:list")
+    cache.invalidate_prefix("zonas:heatmap:")
     return reporte
 
 

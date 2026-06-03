@@ -129,9 +129,11 @@
   </div>
   <nav class="sidebar-nav">
     <a href="dashboard.html"           class="nav-link" onclick="closeSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
-    <a href="reportar.html"            class="nav-link" onclick="closeSidebar()"><i class="bi bi-exclamation-triangle"></i> Reportar</a>
-    <a href="mis-reportes.html"        class="nav-link" onclick="closeSidebar()"><i class="bi bi-list-check"></i> Mis reportes</a>
+    <a href="reportar.html"            class="nav-link" id="link-reportar" onclick="closeSidebar()"><i class="bi bi-exclamation-triangle"></i> Reportar</a>
+    <a href="mis-reportes.html"        class="nav-link" id="link-mis-reportes" onclick="closeSidebar()"><i class="bi bi-list-check"></i> Mis reportes</a>
     <a href="gestionar-reportes.html"  class="nav-link active d-none" id="link-gestionar" onclick="closeSidebar()"><i class="bi bi-clipboard2-data"></i> Gestionar reportes</a>
+    <a href="incidentes.html"          class="nav-link d-none" id="link-incidentes" onclick="closeSidebar()"><i class="bi bi-shield-exclamation"></i> Ver incidentes</a>
+    <a href="mis-casos.html"           class="nav-link d-none" id="link-mis-casos" onclick="closeSidebar()"><i class="bi bi-briefcase"></i> Mis casos</a>
     <a href="alertas.html"             class="nav-link" onclick="closeSidebar()"><i class="bi bi-bell"></i> Alertas</a>
     <a href="admin.html"               class="nav-link d-none" id="link-admin" onclick="closeSidebar()"><i class="bi bi-people"></i> Usuarios</a>
   </nav>
@@ -249,9 +251,16 @@
       document.getElementById('user-name').textContent  = `${u.nombre} ${u.apellido}`;
       document.getElementById('user-role').textContent  = ROL_NOMBRES[u.id_rol] || 'Usuario';
       document.getElementById('user-avatar').textContent = u.nombre[0].toUpperCase();
-      if (u.id_rol >= 2) document.getElementById('link-gestionar').classList.remove('d-none');
+      if (u.id_rol >= 2 && u.id_rol !== 3) document.getElementById('link-gestionar').classList.remove('d-none');
+      if (u.id_rol === 3) {
+        document.getElementById('link-reportar')?.classList.add('d-none');
+        document.getElementById('link-mis-reportes')?.classList.add('d-none');
+        document.getElementById('link-incidentes')?.classList.remove('d-none');
+        document.getElementById('link-mis-casos')?.classList.remove('d-none');
+        window.location.href = 'incidentes.html'; // autoridad va directo a incidentes
+      }
       if (u.id_rol === 4) document.getElementById('link-admin').classList.remove('d-none');
-      if (u.id_rol < 2) window.location.href = 'dashboard.html'; // vecinos no pueden entrar
+      if (u.id_rol < 2) window.location.href = 'dashboard.html';
     } catch { window.location.href = 'index.html'; }
   }
 

@@ -48,7 +48,7 @@ def listar_gestion(
     current_user: Usuario = Depends(require_role([ROL_DIRECTIVO, ROL_AUTORIDAD, ROL_ADMIN])),
 ):
     """Lista todos los reportes con nombre del reportante. Admins ven nombre aunque sea anónimo."""
-    reportes = reporte_service.listar_reportes(db, id_zona, id_tipo, estado)
+    reportes = reporte_service.listar_reportes(db, id_zona, id_tipo, estado, with_evidencias=True)
     es_admin = current_user.rol.nombre == ROL_ADMIN
     resultado = []
     for r in reportes:

@@ -6,6 +6,15 @@ from decimal import Decimal
 from backend.models.reporte import EstadoReporte
 
 
+class EvidenciaResponse(BaseModel):
+    id_evidencia: int
+    tipo_archivo: str
+    ruta_archivo: str
+    nombre_original: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
 class ReporteCreate(BaseModel):
     id_zona: int
     id_tipo: int
@@ -40,5 +49,6 @@ class ReporteGestionResponse(ReporteResponse):
     """Respuesta extendida para directivo/autoridad/admin con info del reportante."""
     tipo_nombre: Optional[str] = None
     zona_nombre: Optional[str] = None
-    reporter_nombre: Optional[str] = None    # siempre visible para admin
-    reporter_apellido: Optional[str] = None  # siempre visible para admin
+    reporter_nombre: Optional[str] = None
+    reporter_apellido: Optional[str] = None
+    evidencias: list[EvidenciaResponse] = []

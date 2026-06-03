@@ -330,6 +330,32 @@
   function verDetalle(id) {
     const r = todosLosReportes.find(x => x.id_reporte === id);
     if (!r) return;
+
+    let evidenciaHtml = '';
+    if (r.evidencias && r.evidencias.length > 0) {
+      evidenciaHtml = r.evidencias.map(e => {
+        if (e.tipo_archivo === 'imagen') {
+          return `<a href="${e.ruta_archivo}" target="_blank" rel="noopener">
+            <img src="${e.ruta_archivo}" alt="${e.nombre_original || 'Evidencia'}"
+              style="max-width:100%;max-height:260px;border-radius:10px;margin-top:.5rem;border:1px solid var(--border);object-fit:cover;display:block"
+              onerror="this.outerHTML='<span style=\'color:var(--muted);font-size:.8rem\'>Imagen no disponible</span>'"/>
+          </a>`;
+        }
+        if (e.tipo_archivo === 'video') {
+          return `<video controls style="max-width:100%;border-radius:10px;margin-top:.5rem">
+            <source src="${e.ruta_archivo}">
+            <a href="${e.ruta_archivo}" target="_blank" style="color:var(--cyan)"><i class="bi bi-play-circle me-1"></i>${e.nombre_original || 'Ver video'}</a>
+          </video>`;
+        }
+        return `<a href="${e.ruta_archivo}" target="_blank" rel="noopener"
+          style="color:var(--cyan);font-size:.85rem;display:flex;align-items:center;gap:.4rem;margin-top:.4rem">
+          <i class="bi bi-music-note-beamed"></i>${e.nombre_original || 'Escuchar audio'}
+        </a>`;
+      }).join('');
+    } else {
+      evidenciaHtml = '<span style="color:var(--muted);font-style:italic;font-size:.82rem">Sin evidencia adjunta</span>';
+    }
+
     document.getElementById('modal-detalle-body').innerHTML = `
       <div class="det-row"><span class="det-label">ID:</span><span class="det-val">#${r.id_reporte}</span></div>
       <div class="det-row"><span class="det-label">Tipo:</span><span class="det-val">${r.tipo_nombre || r.id_tipo}</span></div>
@@ -341,8 +367,12 @@
       <div class="det-row"><span class="det-label">Reportado:</span><span class="det-val">${new Date(r.fecha_reporte).toLocaleString('es-BO')}</span></div>
       <div class="det-row"><span class="det-label">Anónimo:</span><span class="det-val">${r.anonimo ? 'Sí ⚠' : 'No'}</span></div>
       <div class="det-row"><span class="det-label">Reportante:</span><span class="det-val" style="font-weight:700;color:${r.anonimo && r.reporter_nombre==='Anónimo' ? 'var(--muted)' : 'var(--cyan)'}">
-        ${r.reporter_nombre === 'Anónimo' ? 'Anónimo (ocultado para no-admin)' : `${r.reporter_nombre || ''} ${r.reporter_apellido || ''}`}
+        ${r.reporter_nombre === 'Anónimo' ? 'Anónimo' : `${r.reporter_nombre || ''} ${r.reporter_apellido || ''}`}
       </span></div>
+      <div class="det-row" style="flex-direction:column;align-items:flex-start;gap:.3rem">
+        <span class="det-label"><i class="bi bi-paperclip me-1"></i>Evidencia:</span>
+        <div style="width:100%">${evidenciaHtml}</div>
+      </div>
     `;
     new bootstrap.Modal(document.getElementById('modalDetalle')).show();
   }

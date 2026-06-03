@@ -4,7 +4,7 @@ import os
 import uuid
 import cloudinary
 import cloudinary.uploader
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from fastapi import HTTPException, UploadFile
 from backend.models.reporte import Reporte
 from backend.models.evidencia import Evidencia, TipoArchivo
@@ -43,8 +43,11 @@ def listar_reportes(
     id_tipo: int | None = None,
     estado: str | None = None,
     id_usuario: int | None = None,
+    with_evidencias: bool = False,
 ) -> list[Reporte]:
     q = db.query(Reporte)
+    if with_evidencias:
+        q = q.options(selectinload(Reporte.evidencias))
     if id_zona:
         q = q.filter(Reporte.id_zona == id_zona)
     if id_tipo:

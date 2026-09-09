@@ -6,13 +6,12 @@ from email.mime.text import MIMEText
 from backend.config import settings
 
 
-_FALLBACK_EMAIL = "clarosrocajosue@gmail.com"
-_FALLBACK_PASS  = "ucjf lvfd kicq tzyp"
-
-
 def _enviar_smtp(email: str, msg: MIMEMultipart) -> None:
-    smtp_user = settings.SMTP_EMAIL or _FALLBACK_EMAIL
-    smtp_pass = settings.SMTP_PASSWORD or _FALLBACK_PASS
+    smtp_user = settings.SMTP_EMAIL
+    smtp_pass = settings.SMTP_PASSWORD
+
+    if not smtp_user or not smtp_pass:
+        raise RuntimeError("SMTP_EMAIL/SMTP_PASSWORD no configurados")
 
     ctx = ssl.create_default_context()
 

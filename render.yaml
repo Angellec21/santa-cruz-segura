@@ -17,7 +17,7 @@ services:
       - key: DB_PASSWORD
         sync: false
       - key: SECRET_KEY
-        value: santa_cruz_segura_clave_jwt_super_secreta_2026_produccion
+        sync: false
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
@@ -31,8 +31,8 @@ services:
       - key: CLOUDINARY_URL
         sync: false
       - key: SMTP_EMAIL
-        value: clarosrocajosue@gmail.com
+        sync: false
       - key: SMTP_PASSWORD
-        value: "ucjf lvfd kicq tzyp"
+        sync: false
       - key: APP_URL
         value: https://santa-cruz-segura.onrender.com

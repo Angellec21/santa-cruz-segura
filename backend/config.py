@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     MAX_UPLOAD_MB: int = 10
     CLOUDINARY_URL: Optional[str] = None
 
-    SMTP_EMAIL: str = "clarosrocajosue@gmail.com"
-    SMTP_PASSWORD: str = "ucjf lvfd kicq tzyp"
+    SMTP_EMAIL: str = ""
+    SMTP_PASSWORD: str = ""
     APP_URL: str = "https://santa-cruz-segura.onrender.com"
 
     class Config:

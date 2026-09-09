@@ -20,7 +20,7 @@ let heatLayer = null;
 
 const mapa = L.map('mapa-reportar', { zoomControl: false }).setView([-17.7834, -63.1821], 13);
 L.control.zoom({ position: 'bottomright' }).addTo(mapa);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution:'© CARTO', maxZoom: 19 }).addTo(mapa);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap', maxZoom: 19 }).addTo(mapa);
 heatLayer = L.heatLayer([], { radius: 35, blur: 25, maxZoom: 17, gradient:{ 0.3:'#7c3aed', 0.6:'#00d47a', 0.8:'#f59e0b', 1.0:'#ef4444' } }).addTo(mapa);
 
 // ── Distancia entre dos puntos GPS en metros (Haversine) ──────────────────

@@ -15,6 +15,7 @@ from backend.models.zona_caliente import ZonaCaliente
 from backend.schemas.reporte import ReporteCreate, ReporteEstadoUpdate
 from backend.config import settings
 from backend.utils import cache
+from backend.websocket.manager import manager
 
 _STOP_WORDS = {
     'el','la','los','las','un','una','de','del','en','y','a','que','se',
@@ -118,6 +119,17 @@ def crear_reporte(data: ReporteCreate, id_usuario: int, db: Session) -> Reporte:
     db.refresh(reporte)
     cache.invalidate("dashboard:resumen", "dashboard:tendencia", "dashboard:tipos", "zonas:list")
     cache.invalidate_prefix("zonas:heatmap:")
+
+    db.refresh(zona)  # el trigger ya recalculó nivel_riesgo dentro de la misma transacción
+    manager.broadcast({
+        "tipo": "nuevo_reporte",
+        "id_reporte": reporte.id_reporte,
+        "latitud": float(reporte.latitud),
+        "longitud": float(reporte.longitud),
+        "tipo_incidente": reporte.tipo_incidente.nombre if reporte.tipo_incidente else None,
+        "nivel_zona": zona.nivel_riesgo.value,
+        "id_zona": zona.id_zona,
+    })
     return reporte
 
 

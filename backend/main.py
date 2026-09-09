@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 from collections import defaultdict
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -62,8 +62,20 @@ async def health():
     return {"status": "ok"}
 
 
+@app.websocket("/ws/mapa")
+async def ws_mapa(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+
 @app.on_event("startup")
 async def startup():
+    manager.set_loop(asyncio.get_event_loop())
+
     async def _migrate_and_warm():
         await asyncio.sleep(3)
         try:

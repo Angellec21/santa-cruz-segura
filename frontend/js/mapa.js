@@ -57,19 +57,40 @@ function dibujarZonaCalor(map, lat, lng, radio, nivel, nombre, reportes30d) {
 
 let mapaLeaflet = null;
 let heatLayer   = null;
+let marcadoresReportes = null;
 let zonasMap    = {};
 let tiposMap    = {};
 
 function initMapa(elementId = 'mapa') {
   mapaLeaflet = L.map(elementId, { zoomControl: false }).setView(SANTA_CRUZ_CENTER, 13);
   L.control.zoom({ position: 'bottomright' }).addTo(mapaLeaflet);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO', maxZoom: 19,
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19,
   }).addTo(mapaLeaflet);
   heatLayer = L.heatLayer([], { radius: 35, blur: 25, maxZoom: 17, gradient: { 0.3:'#7c3aed', 0.6:'#00d47a', 0.8:'#f59e0b', 1.0:'#ef4444' } }).addTo(mapaLeaflet);
+  marcadoresReportes = L.layerGroup().addTo(mapaLeaflet);
   cargarMapa();
-  // Polling cada 30 segundos para nuevos reportes
+  conectarWebSocket();
+  // Respaldo por si el WebSocket se corta (ej. el free tier de Render duerme el proceso)
   setInterval(cargarReportesExistentes, 30000);
+}
+
+// Actualización en tiempo real: el backend emite "nuevo_reporte" apenas se guarda
+// un reporte y la zona recalcula su riesgo (ver backend/services/reporte_service.py)
+function conectarWebSocket() {
+  const protocolo = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(`${protocolo}//${location.host}/ws/mapa`);
+
+  ws.onmessage = (evento) => {
+    const data = JSON.parse(evento.data);
+    if (data.tipo === 'nuevo_reporte') {
+      cargarReportesExistentes();
+    }
+  };
+
+  ws.onclose = () => {
+    setTimeout(conectarWebSocket, 5000);
+  };
 }
 
 // Carga zonas, heatmap Y reportes existentes como marcadores
@@ -104,7 +125,15 @@ async function cargarMapa() {
 
 async function cargarReportesExistentes() {
   try {
-    const reportes = await api('/reportes');
+    const [reportes, heatPuntos] = await Promise.all([
+      api('/reportes'),
+      api('/zonas/heatmap/all'),
+    ]);
+
+    const puntos = heatPuntos.map(p => [p.lat, p.lng, p.intensity]);
+    heatLayer.setLatLngs(puntos);
+
+    marcadoresReportes.clearLayers();
     reportes.forEach(r => {
       const zona      = zonasMap[r.id_zona];
       const nivel     = zona ? zona.nivel_riesgo : 'bajo';
@@ -137,7 +166,7 @@ async function cargarReportesExistentes() {
           `<small style="color:#94a3b8">${fecha} ${hora}</small>` +
           (r.descripcion ? `<br><small style="color:#64748b">${r.descripcion}</small>` : '')
         )
-        .addTo(mapaLeaflet);
+        .addTo(marcadoresReportes);
     });
   } catch (e) { console.error('Error cargando reportes:', e); }
 }

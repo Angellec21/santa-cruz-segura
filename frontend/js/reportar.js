@@ -10,7 +10,7 @@ const TIPO_ICONOS = {
   'Otro':               'bi-question-circle',
 };
 const COLOR_RIESGO = { bajo: '#22c55e', medio: '#eab308', alto: '#ef4444', critico: '#b91c1c' };
-const FILL_OP_R    = { bajo: 0.13,    medio: 0.22,    alto: 0.32,    critico: 0.42 };
+const FILL_OP_R    = { bajo: 0.35,    medio: 0.50,    alto: 0.65,    critico: 0.80 };
 
 let lat = null, lng = null;
 let marcador = null;
@@ -133,7 +133,7 @@ async function cargarSelects() {
       L.circle([parseFloat(z.latitud_centro), parseFloat(z.longitud_centro)], {
         radius: z.radio_metros,
         color: color, fillColor: color,
-        fillOpacity: fo, weight: 1.8, opacity: 0.8,
+        fillOpacity: fo, weight: 2.5, opacity: 1,
         interactive: false,
       }).addTo(mapa);
 
@@ -141,7 +141,7 @@ async function cargarSelects() {
       L.circle([parseFloat(z.latitud_centro), parseFloat(z.longitud_centro)], {
         radius: z.radio_metros * 0.38,
         color: 'transparent', fillColor: color,
-        fillOpacity: Math.min(fo * 2.8, 0.75), weight: 0,
+        fillOpacity: Math.min(fo * 1.3, 0.95), weight: 0,
         interactive: false,
       }).addTo(mapa);
 

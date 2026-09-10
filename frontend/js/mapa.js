@@ -2,7 +2,7 @@ requireAuth();
 
 const SANTA_CRUZ_CENTER = [-17.7834, -63.1821];
 const COLOR_RIESGO  = { bajo: '#22c55e', medio: '#eab308', alto: '#ef4444', critico: '#b91c1c' };
-const FILL_OP       = { bajo: 0.13,    medio: 0.22,    alto: 0.32,    critico: 0.42 };
+const FILL_OP       = { bajo: 0.35,    medio: 0.50,    alto: 0.65,    critico: 0.80 };
 const LABEL_COLOR   = { bajo: '#22c55e', medio: '#eab308', alto: '#ef4444', critico: '#ff4444' };
 
 function dibujarZonaCalor(map, lat, lng, radio, nivel, nombre, reportes30d) {
@@ -22,7 +22,7 @@ function dibujarZonaCalor(map, lat, lng, radio, nivel, nombre, reportes30d) {
   L.circle([lat, lng], {
     radius: radio,
     color: color, fillColor: color,
-    fillOpacity: fo, weight: 1.8, opacity: 0.8,
+    fillOpacity: fo, weight: 2.5, opacity: 1,
   }).bindPopup(
     `<b>${nombre}</b><br>` +
     `Riesgo: <b style="color:${label}">${nivel.toUpperCase()}</b><br>` +
@@ -33,7 +33,7 @@ function dibujarZonaCalor(map, lat, lng, radio, nivel, nombre, reportes30d) {
   L.circle([lat, lng], {
     radius: radio * 0.38,
     color: 'transparent', fillColor: color,
-    fillOpacity: Math.min(fo * 2.8, 0.75), weight: 0,
+    fillOpacity: Math.min(fo * 1.3, 0.95), weight: 0,
     interactive: false,
   }).addTo(map);
 
@@ -77,9 +77,18 @@ function initMapa(elementId = 'mapa') {
 
 // Actualización en tiempo real: el backend emite "nuevo_reporte" apenas se guarda
 // un reporte y la zona recalcula su riesgo (ver backend/services/reporte_service.py)
+function marcarEstadoWS(conectado) {
+  const badge = document.getElementById('ws-badge-map');
+  if (!badge) return;
+  badge.className = 'ws-pill ' + (conectado ? 'on' : 'off');
+  badge.innerHTML = `<span class="ws-dot"></span>${conectado ? 'En línea' : 'Sin conexión'}`;
+}
+
 function conectarWebSocket() {
   const protocolo = location.protocol === 'https:' ? 'wss:' : 'ws:';
   const ws = new WebSocket(`${protocolo}//${location.host}/ws/mapa`);
+
+  ws.onopen = () => marcarEstadoWS(true);
 
   ws.onmessage = (evento) => {
     const data = JSON.parse(evento.data);
@@ -89,6 +98,7 @@ function conectarWebSocket() {
   };
 
   ws.onclose = () => {
+    marcarEstadoWS(false);
     setTimeout(conectarWebSocket, 5000);
   };
 }

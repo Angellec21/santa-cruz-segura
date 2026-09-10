@@ -186,6 +186,8 @@ async function cargarPredicciones() {
     preds.forEach(p => { predMap[p.id_zona] = p; });
 
     const puedePredir = user && [2, 3, 4].includes(user.id_rol);
+    const btnTodas = document.getElementById('btn-pred-todas');
+    if (btnTodas) btnTodas.style.display = puedePredir ? '' : 'none';
 
     // Auto-predecir zonas sin predicción — todas en paralelo, un solo re-render
     const sinPred = zonas.filter(z => !predMap[z.id_zona]);
@@ -236,6 +238,22 @@ window.predecirZona = async function(id_zona, btn) {
   } catch {
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+  }
+};
+
+window.recalcularTodasLasZonas = async function(btn) {
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.65rem;height:.65rem"></span> Recalculando…';
+  try {
+    const zonas = await api('/zonas');
+    await Promise.all(
+      zonas.map(z => api(`/ia/predecir/${z.id_zona}`, { method: 'POST' }).catch(() => {}))
+    );
+    await cargarPredicciones();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
   }
 };
 

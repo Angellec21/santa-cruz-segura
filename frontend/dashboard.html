@@ -327,7 +327,12 @@
     <div class="card" style="display:flex;flex-direction:column">
       <div class="card-hdr">
         <div class="card-hdr-title"><i class="bi bi-cpu"></i>Predicción IA · 7 días</div>
-        <span style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);color:var(--purple);font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;letter-spacing:.04em">ML ACTIVO</span>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn-pred" id="btn-pred-todas" onclick="recalcularTodasLasZonas(this)" title="Recalcular todas las zonas">
+            <i class="bi bi-arrow-clockwise"></i> Recalcular todo
+          </button>
+          <span style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);color:var(--purple);font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;letter-spacing:.04em">ML ACTIVO</span>
+        </div>
       </div>
       <div id="ai-zonas-list" style="flex:1;overflow-y:auto;min-height:200px">
         <div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.82rem">
@@ -397,8 +402,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script src="js/api.js"></script>
 <script src="js/auth.js?v=3"></script>
-<script src="js/mapa.js?v=5"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/mapa.js?v=6"></script>
+<script src="js/dashboard.js?v=2"></script>
 <script>
   function openSidebar(){
     document.getElementById('sidebar').classList.add('open');

@@ -74,6 +74,14 @@ function initMapa(elementId = 'mapa') {
   conectarWebSocket();
   // Respaldo por si el WebSocket se corta (ej. el free tier de Render duerme el proceso)
   setInterval(cargarReportesExistentes, 30000);
+
+  // El contenedor del mapa crece cuando el panel de IA (a su lado) termina de
+  // cargar su contenido de forma asíncrona; sin esto Leaflet se queda con el
+  // tamaño viejo y deja sin tiles la parte nueva del mapa.
+  const contenedor = document.getElementById(elementId);
+  if (contenedor && window.ResizeObserver) {
+    new ResizeObserver(() => mapaLeaflet.invalidateSize()).observe(contenedor);
+  }
 }
 
 // Actualización en tiempo real: el backend emite "nuevo_reporte" apenas se guarda

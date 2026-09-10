@@ -4,6 +4,7 @@ const SANTA_CRUZ_CENTER = [-17.7834, -63.1821];
 const COLOR_RIESGO  = { bajo: '#22c55e', medio: '#eab308', alto: '#ef4444', critico: '#b91c1c' };
 const FILL_OP       = { bajo: 0.35,    medio: 0.50,    alto: 0.65,    critico: 0.80 };
 const LABEL_COLOR   = { bajo: '#22c55e', medio: '#eab308', alto: '#ef4444', critico: '#ff4444' };
+const COLOR_REPORTE = '#f43f5e'; // color fijo para marcadores de reportes individuales
 
 function dibujarZonaCalor(map, lat, lng, radio, nivel, nombre, reportes30d) {
   const color  = COLOR_RIESGO[nivel] || '#22c55e';
@@ -145,21 +146,20 @@ async function cargarReportesExistentes() {
 
     marcadoresReportes.clearLayers();
     reportes.forEach(r => {
-      const zona      = zonasMap[r.id_zona];
-      const nivel     = zona ? zona.nivel_riesgo : 'bajo';
       const tipoNombre = tiposMap[r.id_tipo] || 'Incidente';
       const fecha     = new Date(r.fecha_reporte).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
       const hora      = new Date(r.fecha_reporte).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
 
-      const color = COLOR_RIESGO[nivel] || '#94a3b8';
+      // Color fijo: un reporte siempre se ve, sin importar el riesgo agregado de la zona
+      const color = COLOR_REPORTE;
       const icon = L.divIcon({
         className: '',
         html: `<div style="
-          width:12px;height:12px;border-radius:50%;
+          width:14px;height:14px;border-radius:50%;
           background:${color};border:2px solid rgba(255,255,255,.9);
           box-shadow:0 0 8px ${color},0 0 2px rgba(0,0,0,.8);
         "></div>`,
-        iconAnchor: [6, 6],
+        iconAnchor: [7, 7],
       });
 
       const estadoBadge = {

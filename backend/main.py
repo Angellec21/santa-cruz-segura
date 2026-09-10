@@ -102,14 +102,14 @@ async def startup():
                 from backend.utils import cache
                 zonas = listar_zonas(db)
                 cache.set("zonas:list", zonas)
-                intensidad_map = {"bajo": 0.3, "medio": 0.5, "alto": 0.8, "critico": 1.0}
+                intensidad_map = {"bajo": 0.55, "medio": 0.7, "alto": 0.85, "critico": 1.0}
                 rows = db.execute(text("""
                     SELECT r.latitud, r.longitud, z.nivel_riesgo
                     FROM reporte r JOIN zona_caliente z ON z.id_zona = r.id_zona
                 """)).mappings().all()
                 cache.set("zonas:heatmap:all", [
                     {"lat": float(r.latitud), "lng": float(r.longitud),
-                     "intensity": intensidad_map.get(r.nivel_riesgo, 0.3)}
+                     "intensity": intensidad_map.get(r.nivel_riesgo, 0.55)}
                     for r in rows
                 ])
                 cache.set("alertas:list", listar_alertas(db))

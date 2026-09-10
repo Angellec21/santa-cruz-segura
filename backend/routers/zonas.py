@@ -33,7 +33,7 @@ def heatmap_all(
     hit, val = cache.get("zonas:heatmap:all", ttl=30)
     if hit:
         return val
-    intensidad_map = {"bajo": 0.3, "medio": 0.5, "alto": 0.8, "critico": 1.0}
+    intensidad_map = {"bajo": 0.55, "medio": 0.7, "alto": 0.85, "critico": 1.0}
     rows = db.execute(text("""
         SELECT r.latitud, r.longitud, z.nivel_riesgo
         FROM reporte r
@@ -42,7 +42,7 @@ def heatmap_all(
     """)).mappings().all()
     result = [
         {"lat": float(r.latitud), "lng": float(r.longitud),
-         "intensity": intensidad_map.get(r.nivel_riesgo, 0.3)}
+         "intensity": intensidad_map.get(r.nivel_riesgo, 0.55)}
         for r in rows
     ]
     cache.set("zonas:heatmap:all", result)

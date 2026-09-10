@@ -28,9 +28,9 @@ def heatmap_zona(id_zona: int, db: Session) -> list[HeatmapPoint]:
         )
         .all()
     )
-    intensidad_map = {"bajo": 0.3, "medio": 0.5, "alto": 0.8, "critico": 1.0}
+    intensidad_map = {"bajo": 0.55, "medio": 0.7, "alto": 0.85, "critico": 1.0}
     zona = db.query(ZonaCaliente).filter(ZonaCaliente.id_zona == id_zona).first()
-    intensidad = intensidad_map.get(zona.nivel_riesgo.value if zona else "bajo", 0.5)
+    intensidad = intensidad_map.get(zona.nivel_riesgo.value if zona else "bajo", 0.7)
 
     return [
         HeatmapPoint(lat=float(r.latitud), lng=float(r.longitud), intensity=intensidad)
